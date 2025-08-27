@@ -1,18 +1,18 @@
 import prisma from "./dbconfig";
-import { getPrecisedData } from "./utils";
 
-export async function processandSavetrade(params: any) {
+export async function processandSavetrade(params: any, price: any) {
   try {
     const data = await prisma.trade.create({
       data: {
         symbol: params.s,
-        price:  getPrecisedData(params.p),
+        price:  price,
         tradeId: BigInt(params.a),
         timestamp: new Date(params.T),
       },
     });
     console.log("data is updated :", data);
+
   } catch (e) {
-    console.log(`error while pushing in the db ${e} `);
+    console.log(`error while pushing in the db ${e}`);
   }
 }

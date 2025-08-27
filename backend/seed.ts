@@ -120,7 +120,7 @@ async function initializeTimescale() {
   `);
 
   await client.query(`
-    CREATE MATERIALIZED VIEW IF NOT EXISTS candles_5m
+    CREATE MATERIALIZED VIEW IF NOT EXISTS candles_5m 
     WITH (timescaledb.continuous) AS
     SELECT 
         time_bucket('5 minutes', timestamp) AS bucket,
