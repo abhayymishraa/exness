@@ -1,10 +1,17 @@
+-- migrate:break
+-- This is an empty migration.
 
+-- Timescale + Continuous Aggregates
+-- @prisma-migrate no-transaction
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 
 SELECT create_hypertable('"Trade"', 'timestamp', if_not_exists => TRUE);
 -- convert this trade table that i hve into the hypertable  and timestamp is the column by which we will use to partiotion the data overtime (timedb functionality)
 
 -- materialized viw stores query results physically in db.
+-- CreateMaterializedView
+-- @prisma-migrate no-transaction
+
 CREATE MATERIALIZED VIEW candles_1m
 -- this is not a mv it is a continuous aggregeate , optimized for tsdb , incrementally refresh te db 
 WITH (timescaledb.continuous) AS 
@@ -20,6 +27,7 @@ FROM "Trade"
 GROUP BY bucket, symbol; -- grop data by time bucket and symbol
 
 
+
 CREATE MATERIALIZED VIEW candles_5m
 WITH (timescaledb.continuous) AS 
 SELECT 
@@ -32,6 +40,7 @@ SELECT
     SUM(quantity) AS volume
 FROM "Trade"
 GROUP BY bucket, symbol;
+
 
 CREATE MATERIALIZED VIEW candles_1d
 WITH (timescaledb.continuous) AS 

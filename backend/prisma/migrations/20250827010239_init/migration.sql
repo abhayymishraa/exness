@@ -7,8 +7,8 @@ CREATE TABLE "public"."Trade" (
     "tradeId" BIGINT NOT NULL,
     "timestamp" TIMESTAMPTZ(3) NOT NULL,
 
-    CONSTRAINT "Trade_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Trade_pkey" PRIMARY KEY ("id","timestamp")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Trade_tradeId_key" ON "public"."Trade"("tradeId");
+CREATE UNIQUE INDEX "Trade_tradeId_timestamp_key" ON "public"."Trade"("tradeId", "timestamp");

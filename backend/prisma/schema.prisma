@@ -15,17 +15,18 @@ datasource db {
 }
 
 model Trade {
+  id        Int      @default(autoincrement())
   symbol      String
   price       Int
   quantity    Int 
-  tradeId     BigInt  @unique
+  tradeId     BigInt  
   timestamp   DateTime @db.Timestamptz(3)
-
-  @@id([symbol, tradeId])
-  @@index([timestamp])
+  @@id([id, timestamp]) //composite keys like it will together make a pk 
+  @@unique([tradeId, timestamp]) // db uniquesness tell that we dont ever store same trade again and again 
 }
 
 // timestamptz => it will store the the data in utc w/ caring about any data  
 // convert timestampl to the right time on retreival 
 // 3 is just a numer of precision that we are using like for the milliseconds 
+
 
