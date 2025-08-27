@@ -113,8 +113,7 @@ async function initializeTimescale() {
         first(price, timestamp) AS open,
         MAX(price) AS high,
         MIN(price) AS low,
-        last(price, timestamp) AS close,
-        SUM(quantity) AS volume
+        last(price, timestamp) AS close
     FROM "Trade"
     GROUP BY bucket, symbol
     WITH NO DATA;
@@ -129,8 +128,7 @@ async function initializeTimescale() {
         first(price, timestamp) AS open,
         MAX(price) AS high,
         MIN(price) AS low,
-        last(price, timestamp) AS close,
-        SUM(quantity) AS volume
+        last(price, timestamp) AS close
     FROM "Trade"
     GROUP BY bucket, symbol
     WITH NO DATA;
@@ -145,8 +143,7 @@ async function initializeTimescale() {
         first(price, timestamp) AS open,
         MAX(price) AS high,
         MIN(price) AS low,
-        last(price, timestamp) AS close,
-        SUM(quantity) AS volume
+        last(price, timestamp) AS close
     FROM "Trade"
     GROUP BY bucket, symbol
     WITH NO DATA;

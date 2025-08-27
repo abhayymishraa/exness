@@ -15,10 +15,9 @@ datasource db {
 }
 
 model Trade {
-  id        Int      @default(autoincrement())
+  id          Int      @default(autoincrement())
   symbol      String
   price       Int
-  quantity    Int 
   tradeId     BigInt  
   timestamp   DateTime @db.Timestamptz(3)
   @@id([id, timestamp]) //composite keys like it will together make a pk 
