@@ -7,3 +7,14 @@ export function getPrecisedData(val: string) {
 export function getRealValue(val: number) {
   return val / PRECISION;
 }
+
+export enum Channels {
+  SOLUSDT,
+  ETHUSDT,
+  BTCUSDT,
+}
+
+
+
+
+

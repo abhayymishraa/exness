@@ -3,19 +3,40 @@ import { WebSocketServer, WebSocket } from "ws";
 
 const redis = createClient();
 const websocket = new WebSocketServer({ port: 8080 });
-const client = new Set<WebSocket>();
+const client = new Map<WebSocket, Set<string>>();
+
+export const Channels = ["SOLUSDT", "ETHUSDT", "BTCUSDT"];
 
 const start = async () => {
   await redis.connect();
 
-  await redis.subscribe("ask_bids", (data) => {
-    client.forEach((e: WebSocket) => {
-      e.send(JSON.stringify(data));
+  Channels.forEach((ch) => {
+    redis.subscribe(ch, (data) => {
+      client.forEach((symbs, ws: WebSocket) => {
+        if (symbs.has(ch)) {
+          ws.send(data);
+        }
+      });
     });
   });
 
-    websocket.on("connection", (ws: WebSocket) => {
-    client.add(ws);
+  websocket.on("connection", (ws: WebSocket) => {
+    client.set(ws, new Set());
+    ws.on("message", (msg) => {
+      const message = JSON.parse(msg.toString());
+      if (message.type === "SUBSCRIBE") {
+        const symbs = client.get(ws);
+        symbs?.add(message.symbol);
+      }
+
+      if (message.type === "UNSUBSCRIBE") {
+        const symbs = client.get(ws);
+        symbs?.delete(message.symbol);
+        if (symbs?.size === 0) {
+          client.delete(ws);
+        } 
+      }
+    });
   });
 };
 
