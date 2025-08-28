@@ -25,6 +25,9 @@ const start = async () => {
     ws.on("message", (msg) => {
       const message = JSON.parse(msg.toString());
       if (message.type === "SUBSCRIBE") {
+        if (!client.has(ws)) {
+          client.set(ws, new Set());
+        }
         const symbs = client.get(ws);
         symbs?.add(message.symbol);
       }
@@ -34,7 +37,7 @@ const start = async () => {
         symbs?.delete(message.symbol);
         if (symbs?.size === 0) {
           client.delete(ws);
-        } 
+        }
       }
     });
   });
