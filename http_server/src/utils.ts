@@ -1,0 +1,9 @@
+const PRECISION = 1000;
+
+export function getPrecisedData(val: string) {
+  return Math.round(parseFloat(val) * PRECISION)
+}
+
+export function getRealValue(val: number) {
+  return val / PRECISION;
+}
