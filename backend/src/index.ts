@@ -23,7 +23,7 @@ async function main() {
     ws.send(
       JSON.stringify({
         method: "SUBSCRIBE",
-        params: ["btcusdt@aggTrade"],
+        params: ["btcusdt@aggTrade", "ethusdt@aggTrade", "solusdt@aggTrade"],
         id: 1,
       })
     );
