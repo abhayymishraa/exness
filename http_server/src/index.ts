@@ -29,24 +29,19 @@ app.get("/api/v1/trading/candles/:symbol", async (req, res) => {
 
   console.log(duration, symbol);
 
-  const query = `SELECT * FROM ${duration} WHERE symbol = $1 ORDER BY bucket DESC`;
+  const query = `SELECT * FROM ${duration} WHERE symbol = $1 ORDER BY bucket ASC`;
 
   try {
     const data = await pgClient.query(query, [symbol]);
-    console.log(data);
-
     res.status(200).json({
-      data: data.rows.map((row) => {
-        return {
-          symbol: row.symbol,
-          bucket: row.bucket,
-          open: row.open,
-          hight: row.high,
-          low: row.low,
-          close: row.close,
-        };
-      }),
-      symbol,
+      data: data.rows.map((row) => ({
+        time: Math.floor(new Date(row.bucket).getTime() / 1000),
+        open: row.open,
+        high: row.high,
+        low: row.low,
+        close: row.close,
+        symbol: row.symbol,
+      })),
     });
   } catch (err) {
     console.log(

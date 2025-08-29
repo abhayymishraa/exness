@@ -1,7 +1,7 @@
 import { WebSocket } from "ws";
 import { createClient } from "redis";
 import { pushToRedis } from "./redisops";
-import { Channels, getPrecisedData, getRealValue } from "./utils";
+import { getPrecisedData } from "./utils";
 import { savetradeBatch } from "./dbops";
 
 const BATCH_TIMINIGS = 10000; //ms
@@ -33,7 +33,7 @@ async function main() {
     const messages = JSON.parse(data);
     if (messages.e === "aggTrade") {
       const intPrice = getPrecisedData(messages.p);
-      pushToRedis(redis, getRealValue(intPrice), messages.s);
+      pushToRedis(redis, intPrice, messages.s, new Date(messages.T));
       tradeBatch.push({
         symbol: messages.s,
         price: intPrice,

@@ -1,23 +1,93 @@
-import ChartComponent, { type ChartData } from "../components/Chart";
-
-const data: ChartData[] = [
-  { open: 10, high: 10.63, low: 9.49, close: 9.55, time: 1642427876 },
-  { open: 9.55, high: 10.3, low: 9.42, close: 9.94, time: 1642514276 },
-  { open: 9.94, high: 10.17, low: 9.92, close: 9.78, time: 1642600676 },
-  { open: 9.78, high: 10.59, low: 9.18, close: 9.51, time: 1642687076 },
-  { open: 9.51, high: 10.46, low: 9.1, close: 10.17, time: 1642773476 },
-  { open: 10.17, high: 10.96, low: 10.16, close: 10.47, time: 1642859876 },
-  { open: 10.47, high: 11.39, low: 10.4, close: 10.81, time: 1642946276 },
-  { open: 10.81, high: 11.6, low: 10.3, close: 10.75, time: 1643032676 },
-  { open: 10.75, high: 11.6, low: 10.49, close: 10.93, time: 1643119076 },
-  { open: 10.93, high: 11.53, low: 10.76, close: 10.96, time: 1643205476 },
-];
+import { useState } from "react";
+import ChartComponent from "../components/Chart";
+import { Channels, Duration } from "../utils/constants";
+import type { SYMBOL } from "../utils/constants";
 
 export default function Trading() {
+  const [duration, setDuration] = useState<Duration>(Duration.candles_1m);
+  const [symbol, setSymbol] = useState<SYMBOL>(Channels.BTCUSDT);
+
   return (
-    <div>
-      <h1>Trading</h1>
-      <ChartComponent data={data} />
+    <div className="min-h-screen">
+      <h1 className=" text-2xl font-serif  font-semibold text-red-600">
+        Trading
+      </h1>
+      <div className=" py-2">
+        <div>
+          <button
+            className={`p-2 border-2 border-black  ${
+              duration === Duration.candles_1m
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
+            disabled={duration === Duration.candles_1m}
+            onClick={() => setDuration(Duration.candles_1m)}
+          >
+            1m
+          </button>
+          <button
+            className={`p-2 border-2 border-black  ${
+              duration === Duration.candles_5m
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
+            disabled={duration === Duration.candles_5m}
+            onClick={() => setDuration(Duration.candles_5m)}
+          >
+            5m
+          </button>
+          <button
+            className={` p-2  border-2 border-black  ${
+              duration === Duration.candles_1d
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
+            disabled={duration === Duration.candles_1d}
+            onClick={() => setDuration(Duration.candles_1d)}
+          >
+            1d
+          </button>
+        </div>
+
+        <div>
+          <button
+            className={` p-2  border-2 border-black  ${
+              symbol === Channels.BTCUSDT
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
+            disabled={symbol === Channels.BTCUSDT}
+            onClick={() => setSymbol(Channels.BTCUSDT)}
+          >
+            BTCUSDT
+          </button>
+          <button
+            className={` p-2  border-2 border-black  ${
+              symbol === Channels.ETHUSDT
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
+            disabled={symbol === Channels.ETHUSDT}
+            onClick={() => setSymbol(Channels.ETHUSDT)}
+          >
+            ETHUSDT
+          </button>
+          <button
+            className={` p-2  border-2 border-black  ${
+              symbol === Channels.SOLUSDT
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
+            disabled={symbol === Channels.SOLUSDT}
+            onClick={() => setSymbol(Channels.SOLUSDT)}
+          >
+            SOLUSDT
+          </button>
+        </div>
+      </div>
+      <div>
+        <ChartComponent symbol={symbol} duration={duration} />
+      </div>
     </div>
   );
 }

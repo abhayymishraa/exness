@@ -11,11 +11,15 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.12",
+    "@types/axios": "^0.14.4",
+    "@types/ws": "^8.18.1",
+    "axios": "^1.11.0",
     "lightweight-charts": "^5.0.8",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router": "^7.8.2",
-    "tailwindcss": "^4.1.12"
+    "tailwindcss": "^4.1.12",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
