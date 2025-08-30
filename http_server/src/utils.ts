@@ -1,9 +1,9 @@
-const PRECISION = 1000;
+export const PRICE_SCALE = 100;
 
-export function getPrecisedData(val: string) {
-  return Math.round(parseFloat(val) * PRECISION)
+export function toDisplayPrice(intPrice: number): number {
+  return intPrice / PRICE_SCALE;
 }
 
-export function getRealValue(val: number) {
-  return val / PRECISION;
+export function toInternalPrice(price: number): number {
+  return Math.round(price * PRICE_SCALE);
 }

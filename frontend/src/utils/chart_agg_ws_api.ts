@@ -2,7 +2,8 @@
 // https://tradingview.github.io/lightweight-charts/tutorials/demos/realtime-updates
 import { type CandlestickData, type UTCTimestamp } from "lightweight-charts";
 import { getKlineData } from "../api/trade";
-import { Channels, Duration, type SYMBOL } from "../utils/constants";
+import { Duration, type SYMBOL } from "../utils/constants";
+import { toDisplayPrice } from "./utils";
 export interface RealtimeUpdate {
   symbol: SYMBOL;
   bid: number;
@@ -35,7 +36,7 @@ export function processRealupdate(
   trade: RealtimeUpdate,
   duration: Duration
 ): CandlestickData | null {
-  const price = trade.bid;
+  const price = toDisplayPrice(trade.bid);
   const tradetimeinsecond = trade.time;
   const bucketSize = getbucketsize(duration);
 
@@ -62,19 +63,15 @@ export function processRealupdate(
   return lastCandle;
 }
 
-export async function updateData(
-  symbol: SYMBOL = Channels.BTCUSDT,
-  duration: Duration = Duration.candles_1m
-) {
+export async function getChartData(symbol: SYMBOL, duration: Duration) {
   const response = await getKlineData(symbol, duration);
   const initialData = response.data;
+  initLastCandle(initialData);
+  return initialData;
+}
 
-  if (initialData.length > 0) {
-    lastCandle = initialData[initialData.length - 1];
+export function initLastCandle(data: CandlestickData[]) {
+  if (data.length > 0) {
+    lastCandle = data[data.length - 1];
   }
-
-  return {
-    initialData,
-    processRealupdate,
-  };
 }

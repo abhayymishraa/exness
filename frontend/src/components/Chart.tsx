@@ -1,9 +1,12 @@
 import { createChart, ColorType, CandlestickSeries } from "lightweight-charts";
 import { useEffect, useRef } from "react";
-import { getKlineData } from "../api/trade";
 import type { Duration, SYMBOL } from "../utils/constants";
 import { Signalingmanager } from "../utils/subscription_manager";
-import { processRealupdate, type RealtimeUpdate } from "../utils/chart_agg_ws_api";
+import {
+  getChartData,
+  processRealupdate,
+  type RealtimeUpdate,
+} from "../utils/chart_agg_ws_api";
 
 export default function ChartComponent({
   duration,
@@ -36,8 +39,7 @@ export default function ChartComponent({
 
     const fetchData = async () => {
       try {
-        const response = await getKlineData(symbol, duration);
-        const rawData = response.data;
+        const rawData = await getChartData(symbol, duration);
         candlestickSeries.setData(rawData);
         chart.timeScale().fitContent();
         chart.timeScale().scrollToPosition(5, true);
@@ -69,7 +71,7 @@ export default function ChartComponent({
       chart.remove();
       const signaling = Signalingmanager.getInstance();
       signaling.deregisterCallback(symbol);
-      signaling.subscribe({ type: "SUBSCRIBE", symbol: symbol });
+      signaling.subscribe({ type: "UNSUBSCRIBE", symbol: symbol });
     };
   }, [duration, symbol]);
 

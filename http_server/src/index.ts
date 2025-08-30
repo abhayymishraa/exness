@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { Client } from "pg";
+import { toDisplayPrice } from "./utils";
 
 const pgClient = new Client({
   host: "localhost",
@@ -36,11 +37,11 @@ app.get("/api/v1/trading/candles/:symbol", async (req, res) => {
     res.status(200).json({
       data: data.rows.map((row) => ({
         time: Math.floor(new Date(row.bucket).getTime() / 1000),
-        open: row.open,
-        high: row.high,
-        low: row.low,
-        close: row.close,
-        symbol: row.symbol,
+        open: toDisplayPrice(row.open),
+        high: toDisplayPrice(row.high),
+        low: toDisplayPrice(row.low),
+        close: toDisplayPrice(row.close),
+        symbol: toDisplayPrice(row.symbol),
       })),
     });
   } catch (err) {

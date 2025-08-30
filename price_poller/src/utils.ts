@@ -1,4 +1,4 @@
-const PRECISION = 1000;
+const PRECISION = 100;
 
 export function getPrecisedData(val: string) {
   return Math.round(parseFloat(val) * PRECISION)
