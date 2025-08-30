@@ -7,6 +7,7 @@ import {
   processRealupdate,
   type RealtimeUpdate,
 } from "../utils/chart_agg_ws_api";
+import { StayonTimeline } from "../utils/chartviewmanager";
 
 export default function ChartComponent({
   duration,
@@ -30,8 +31,8 @@ export default function ChartComponent({
     });
 
     const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: "#26a69a",
-      downColor: "#ef5350",
+      upColor: "#158BF9",
+      downColor: "#EB483F",
       borderVisible: false,
       wickUpColor: "#26a69a",
       wickDownColor: "#ef5350",
@@ -41,8 +42,10 @@ export default function ChartComponent({
       try {
         const rawData = await getChartData(symbol, duration);
         candlestickSeries.setData(rawData);
-        chart.timeScale().fitContent();
-        chart.timeScale().scrollToPosition(5, true);
+        chart.timeScale().scrollToRealTime();
+        chart.timeScale().subscribeVisibleTimeRangeChange(()=>{
+
+        })
 
         const singalingmanger = Signalingmanager.getInstance();
 
@@ -50,6 +53,7 @@ export default function ChartComponent({
           const candle = processRealupdate(trade as RealtimeUpdate, duration);
           if (candle) {
             candlestickSeries.update(candle);
+            StayonTimeline(chart, candlestickSeries, 20);
           }
         });
 

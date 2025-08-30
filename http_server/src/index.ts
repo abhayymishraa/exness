@@ -40,8 +40,8 @@ app.get("/api/v1/trading/candles/:symbol", async (req, res) => {
         open: toDisplayPrice(row.open),
         high: toDisplayPrice(row.high),
         low: toDisplayPrice(row.low),
-        close: toDisplayPrice(row.close),
-        symbol: toDisplayPrice(row.symbol),
+        close: toDisplayPrice(row.close),#158BF9
+        symbol: row.symbol,
       })),
     });
   } catch (err) {
