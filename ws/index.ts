@@ -5,7 +5,7 @@ const redis = createClient();
 const websocket = new WebSocketServer({ port: 8080 });
 const client = new Map<WebSocket, Set<string>>();
 
-export const Channels = ["SOLUSDT", "ETHUSDT", "BTCUSDT"];
+export const Channels = ["SOL", "ETH", "BTC"];
 
 const start = async () => {
   await redis.connect();

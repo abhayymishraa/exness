@@ -20,6 +20,7 @@ model Trade {
   price     Int
   tradeId   BigInt
   timestamp DateTime @db.Timestamptz(3)
+  quantity  Int
 
   @@id([id, timestamp]) //composite keys like it will together make a pk 
   @@unique([tradeId, timestamp]) // db uniquesness tell that we dont ever store same trade again and again 

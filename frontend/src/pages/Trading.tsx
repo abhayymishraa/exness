@@ -2,6 +2,7 @@ import { useState } from "react";
 import ChartComponent from "../components/Chart";
 import { Channels, Duration } from "../utils/constants";
 import type { SYMBOL } from "../utils/constants";
+import AskBids from "../components/AskBidsTable";
 
 export default function Trading() {
   const [duration, setDuration] = useState<Duration>(Duration.candles_1m);
@@ -27,14 +28,14 @@ export default function Trading() {
           </button>
           <button
             className={`p-2 border-2 border-black  ${
-              duration === Duration.candles_5m
+              duration === Duration.candles_1w
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "cursor-pointer"
             }`}
-            disabled={duration === Duration.candles_5m}
-            onClick={() => setDuration(Duration.candles_5m)}
+            disabled={duration === Duration.candles_1w}
+            onClick={() => setDuration(Duration.candles_1w)}
           >
-            5m
+            1w
           </button>
           <button
             className={` p-2  border-2 border-black  ${
@@ -85,8 +86,13 @@ export default function Trading() {
           </button>
         </div>
       </div>
-      <div>
-        <ChartComponent symbol={symbol} duration={duration} />
+      <div className="flex gap-0">
+        <div className="w-full h-full">
+          <ChartComponent symbol={symbol} duration={duration} />
+        </div>
+        <div>
+          <AskBids />
+        </div>
       </div>
     </div>
   );

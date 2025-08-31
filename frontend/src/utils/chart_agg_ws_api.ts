@@ -16,13 +16,13 @@ let lastCandle: CandlestickData | null = null;
 function getbucketsize(duration: Duration): number {
   let bucketSizeSecond: number;
   switch (duration) {
-    case "candles_1m":
+    case "1m":
       bucketSizeSecond = 60;
       break;
-    case "candles_5m":
+    case "1w":
       bucketSizeSecond = 300;
       break;
-    case "candles_1d":
+    case "1d":
       bucketSizeSecond = 86400;
       break;
     default:

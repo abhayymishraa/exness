@@ -1,4 +1,4 @@
-const PRECISION = 100;
+const PRECISION = 10000;
 
 export function getPrecisedData(val: string) {
   return Math.round(parseFloat(val) * PRECISION)
@@ -13,6 +13,9 @@ export enum Channels {
   ETHUSDT,
   BTCUSDT,
 }
+
+
+
 
 
 

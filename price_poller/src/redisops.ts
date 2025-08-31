@@ -1,13 +1,26 @@
-import type { Channels } from "./utils";
+type SymbolMapKey = "SOLUSDT" | "ETHUSDT" | "BTCUSDT";
 
-export function pushToRedis(redis: any, value: any, type: Channels, time: any) {
+export function pushToRedis(
+  redis: any,
+  value: any,
+  type: SymbolMapKey,
+  time: any
+) {
+  let symbolmap = {
+    SOLUSDT: "SOL",
+    ETHUSDT: "ETH",
+    BTCUSDT: "BTC",
+  };
+
   redis.publish(
-    type,
+    symbolmap[type],
     JSON.stringify({
-      ask: value - (2.5 / 100) * value,
+      ask: value + 0.01 * value,
       bid: value,
-      symbol: type,
+      symbol: symbolmap[type],
       time: Math.floor(new Date(time).getTime() / 1000),
     })
   );
+
+  console.log("pubslished on the redis", symbolmap[type]);
 }

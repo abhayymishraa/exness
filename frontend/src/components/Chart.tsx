@@ -7,7 +7,6 @@ import {
   processRealupdate,
   type RealtimeUpdate,
 } from "../utils/chart_agg_ws_api";
-import { StayonTimeline } from "../utils/chartviewmanager";
 
 export default function ChartComponent({
   duration,
@@ -34,33 +33,29 @@ export default function ChartComponent({
       upColor: "#158BF9",
       downColor: "#EB483F",
       borderVisible: false,
+      priceLineColor: "#EB483F",
       wickUpColor: "#26a69a",
       wickDownColor: "#ef5350",
     });
 
     const fetchData = async () => {
-      try {
-        const rawData = await getChartData(symbol, duration);
-        candlestickSeries.setData(rawData);
-        chart.timeScale().scrollToRealTime();
-        chart.timeScale().subscribeVisibleTimeRangeChange(()=>{
+      const rawData = await getChartData(symbol, duration);
+      candlestickSeries.setData(rawData);
+      chart.timeScale().fitContent();
 
-        })
 
-        const singalingmanger = Signalingmanager.getInstance();
+      const signalingManager = Signalingmanager.getInstance();
 
-        singalingmanger.registerCallback(symbol, (trade) => {
-          const candle = processRealupdate(trade as RealtimeUpdate, duration);
-          if (candle) {
-            candlestickSeries.update(candle);
-            StayonTimeline(chart, candlestickSeries, 20);
-          }
-        });
+      signalingManager.registerCallback(symbol, (trade) => {
+        const candle = processRealupdate(trade as RealtimeUpdate, duration);
+        if (candle) {
 
-        singalingmanger.subscribe({ type: "SUBSCRIBE", symbol: symbol });
-      } catch (err) {
-        console.error("Failed to fetch candle data:", err);
-      }
+
+          candlestickSeries.update(candle);
+        }
+      });
+
+      signalingManager.subscribe({ type: "SUBSCRIBE", symbol: symbol });
     };
 
     fetchData();

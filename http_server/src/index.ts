@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import { Client } from "pg";
 import { toDisplayPrice } from "./utils";
+import { userRouter } from "./router/user";
+import { tradingRouter } from "./router/trading";
 
 const pgClient = new Client({
   host: "localhost",
@@ -18,29 +20,65 @@ app.use(express.json());
 app.use(cors());
 const port = 5000;
 
-app.post("/api/v1/user/signin", (req, res) => {});
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/trading", tradingRouter);
 
-app.post("/api/v1/user/signup", (req, res) => {});
-app.get("/api/v1/user/balance", (req, res) => {});
+app.get("/api/v1/candles", async (req, res) => {
+  console.log(" i am here ");
+  const duration = req.query.ts;
+  const asset = req.query.asset!.toString();
+  const startTime = req.query.startTime;
+  const endTime = req.query.endTime;
 
-app.get("/api/v1/trading/candles/:symbol", async (req, res) => {
-  console.log("reached here ");
-  const duration = req.query.duration;
-  const symbol = req.params.symbol.toString();
+  let dbtable;
+  switch (duration) {
+    case "1m":
+      dbtable = "candles_1m";
+      break;
+    case "1w":
+      dbtable = "candles_1w";
+      break;
+    case "1d":
+      dbtable = "candles_1d";
+      break;
+    default:
+      return;
+  }
 
-  console.log(duration, symbol);
+  let symbol;
+  switch (asset) {
+    case "BTC":
+      symbol = "BTCUSDT";
+      break;
+    case "ETH":
+      symbol = "ETHUSDT";
+      break;
+    case "SOL":
+      symbol = "SOLUSDT";
+      break;
+    default:
+      return;
+  }
 
-  const query = `SELECT * FROM ${duration} WHERE symbol = $1 ORDER BY bucket ASC`;
+  console.log(dbtable, symbol, startTime, endTime);
 
+  const query = `SELECT * FROM ${dbtable} WHERE symbol = $1 AND bucket >= $2 AND bucket <= $3 ORDER BY bucket ASC`;
+
+  console.log(query);
   try {
-    const data = await pgClient.query(query, [symbol]);
+    const data = await pgClient.query(query, [
+      symbol,
+      new Date(Number(startTime) * 1000),
+      new Date(Number(endTime) * 1000),
+    ]);
+    console.log(data.rows);
     res.status(200).json({
       data: data.rows.map((row) => ({
         time: Math.floor(new Date(row.bucket).getTime() / 1000),
         open: toDisplayPrice(row.open),
         high: toDisplayPrice(row.high),
         low: toDisplayPrice(row.low),
-        close: toDisplayPrice(row.close),#158BF9
+        close: toDisplayPrice(row.close),
         symbol: row.symbol,
       })),
     });
@@ -53,20 +91,6 @@ app.get("/api/v1/trading/candles/:symbol", async (req, res) => {
       msg: "Invalid arguement",
     });
   }
-});
-
-app.post("/api/v1/trading/order/open/:orderID", (req, res) => {
-  const query = req.query;
-  const orderID = req.params;
-});
-
-app.post("/api/v1/trading/order/close/:orderID", (req, res) => {
-  const query = req.query;
-  const orderID = req.params;
-});
-
-app.post("/api/v1/trading/orders", (req, res) => {
-  const query = req.query;
 });
 
 app.listen(port, () => {

@@ -25,7 +25,7 @@ async function main() {
         method: "SUBSCRIBE",
         params: ["btcusdt@aggTrade", "ethusdt@aggTrade", "solusdt@aggTrade"],
         id: 1,
-      })
+      })  
     );
   });
 
@@ -39,6 +39,7 @@ async function main() {
         price: intPrice,
         tradeId: BigInt(messages.a),
         timestamp: new Date(messages.T),
+        quantity: parseInt(messages.q)
       });
       console.log(messages);
     }

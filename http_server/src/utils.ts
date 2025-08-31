@@ -1,4 +1,4 @@
-export const PRICE_SCALE = 100;
+export const PRICE_SCALE = 10000;
 
 export function toDisplayPrice(intPrice: number): number {
   return intPrice / PRICE_SCALE;

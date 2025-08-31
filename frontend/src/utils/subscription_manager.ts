@@ -83,4 +83,14 @@ export class Signalingmanager {
       delete this.callbacks[type];
     }
   }
+  deregisterCallbackNew(type: string, callback: (...args: unknown[]) => void) {
+    if (this.callbacks[type]) {
+      this.callbacks[type] = this.callbacks[type].filter(
+        (cb) => cb !== callback
+      );
+      if (this.callbacks[type].length === 0) {
+        delete this.callbacks[type];
+      }
+    }
+  }
 }
