@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Signalingmanager } from "../utils/subscription_manager";
 import { Channels, type SYMBOL } from "../utils/constants";
-import { toDisplayPrice } from "../utils/utils";
 
 export interface Trade {
   bid: number;
@@ -90,8 +89,8 @@ export default function AskBids() {
                 >
                   {item.symbol}
                 </th>
-                <td className="px-6 py-4">{toDisplayPrice(item.asks)}</td>
-                <td className="px-6 py-4">{toDisplayPrice(item.bids)}</td>
+                <td className="px-6 py-4">{item.asks}</td>
+                <td className="px-6 py-4">{item.bids}</td>
               </tr>
             ))}
           </tbody>

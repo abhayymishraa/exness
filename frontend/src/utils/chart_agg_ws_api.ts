@@ -1,9 +1,7 @@
-// Lightweight Charts™ Example: Realtime updates
-// https://tradingview.github.io/lightweight-charts/tutorials/demos/realtime-updates
 import { type CandlestickData, type UTCTimestamp } from "lightweight-charts";
 import { getKlineData } from "../api/trade";
 import { Duration, type SYMBOL } from "../utils/constants";
-import { toDisplayPrice } from "./utils";
+
 export interface RealtimeUpdate {
   symbol: SYMBOL;
   bid: number;
@@ -11,36 +9,36 @@ export interface RealtimeUpdate {
   time: number;
 }
 
-let lastCandle: CandlestickData | null = null;
-
 function getbucketsize(duration: Duration): number {
-  let bucketSizeSecond: number;
   switch (duration) {
     case "1m":
-      bucketSizeSecond = 60;
-      break;
-    case "1w":
-      bucketSizeSecond = 300;
-      break;
+      return 60;
     case "1d":
-      bucketSizeSecond = 86400;
-      break;
+      return 86400;
+    case "1w":
+      return 604800;
     default:
-      bucketSizeSecond = 0;
-      console.log("invalid durations ");
+      console.warn("invalid duration", duration);
+      return 0;
   }
-  return bucketSizeSecond;
+}
+
+let lastCandles: Record<string, CandlestickData | null> = {};
+
+function key(symbol: SYMBOL, duration: Duration) {
+  return `${symbol}_${duration}`;
 }
 
 export function processRealupdate(
   trade: RealtimeUpdate,
-  duration: Duration
+  duration: Duration,
 ): CandlestickData | null {
-  const price = toDisplayPrice(trade.bid);
-  const tradetimeinsecond = trade.time;
-  const bucketSize = getbucketsize(duration);
+  const k = key(trade.symbol, duration);
+  let lastCandle = lastCandles[k];
 
-  const currentbucket = (Math.floor(tradetimeinsecond / bucketSize) *
+  const price = trade.bid;
+  const bucketSize = getbucketsize(duration);
+  const currentbucket = (Math.floor(trade.time / bucketSize) *
     bucketSize) as UTCTimestamp;
 
   if (!lastCandle || currentbucket > (lastCandle.time as UTCTimestamp)) {
@@ -60,18 +58,28 @@ export function processRealupdate(
       close: price,
     };
   }
+
+  lastCandles[k] = lastCandle;
   return lastCandle;
+}
+
+export function initLastCandle(
+  symbol: SYMBOL,
+  duration: Duration,
+  data: CandlestickData[],
+) {
+  const k = key(symbol, duration);
+  lastCandles[k] = data.length > 0 ? data[data.length - 1] : null;
 }
 
 export async function getChartData(symbol: SYMBOL, duration: Duration) {
   const response = await getKlineData(symbol, duration);
   const initialData = response.data;
-  initLastCandle(initialData);
+  initLastCandle(symbol, duration, initialData);
   return initialData;
 }
 
-export function initLastCandle(data: CandlestickData[]) {
-  if (data.length > 0) {
-    lastCandle = data[data.length - 1];
-  }
+export function resetLastCandle(symbol: SYMBOL, duration: Duration) {
+  const k = key(symbol, duration);
+  delete lastCandles[k];
 }

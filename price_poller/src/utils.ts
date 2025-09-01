@@ -1,11 +1,15 @@
-const PRECISION = 10000;
+export const PRECISION = 10000;
 
-export function getPrecisedData(val: string) {
-  return Math.round(parseFloat(val) * PRECISION)
+export function toInternalPrice(price: number | string): bigint {
+  return BigInt(Math.round(parseFloat(price as any) * PRECISION));
 }
 
-export function getRealValue(val: number) {
-  return val / PRECISION;
+export function fromInternalPrice(price: bigint): number {
+  return Number(price) / PRECISION;
+}
+
+export function toDisplayPrice(price: bigint): string {
+  return (Number(price) / PRECISION).toFixed(2);
 }
 
 export enum Channels {
@@ -13,9 +17,3 @@ export enum Channels {
   ETHUSDT,
   BTCUSDT,
 }
-
-
-
-
-
-

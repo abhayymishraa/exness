@@ -1,7 +1,7 @@
 import { WebSocket } from "ws";
 import { createClient } from "redis";
 import { pushToRedis } from "./redisops";
-import { getPrecisedData } from "./utils";
+import { toInternalPrice } from "./utils";
 import { savetradeBatch } from "./dbops";
 
 const BATCH_TIMINIGS = 10000; //ms
@@ -25,23 +25,24 @@ async function main() {
         method: "SUBSCRIBE",
         params: ["btcusdt@aggTrade", "ethusdt@aggTrade", "solusdt@aggTrade"],
         id: 1,
-      })  
+      }),
     );
   });
 
   ws.on("message", (data: string) => {
     const messages = JSON.parse(data);
     if (messages.e === "aggTrade") {
-      const intPrice = getPrecisedData(messages.p);
+      const intPrice = toInternalPrice(messages.p);
+      const intQty = toInternalPrice(messages.q);
+
       pushToRedis(redis, intPrice, messages.s, new Date(messages.T));
       tradeBatch.push({
         symbol: messages.s,
         price: intPrice,
         tradeId: BigInt(messages.a),
         timestamp: new Date(messages.T),
-        quantity: parseInt(messages.q)
+        quantity: intQty,
       });
-      console.log(messages);
     }
   });
 

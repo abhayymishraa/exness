@@ -5,13 +5,58 @@ export class Signalingmanager {
   private static instance: Signalingmanager;
   private bufferedMessage = [];
   private initalized: boolean = false;
-  private callbacks: { [type: string]: Array<(...args: unknown[]) => void> } =
+  private callbacks: { [symbol: string]: Array<(...args: unknown[]) => void> } =
     {};
+  private subCount: Record<string, number> = {};
 
   private constructor() {
     this.ws = new WebSocket(url);
     this.bufferedMessage = [];
     this.init();
+  }
+
+  private send(msg: any) {
+    if (!this.initalized) {
+      this.bufferedMessage.push(msg);
+      return;
+    }
+    this.ws.send(JSON.stringify(msg));
+  }
+
+  /** Public API: start watching a symbol with a callback. Returns an unwatch fn. */
+  public watch(
+    symbol: string,
+    callback: (...args: unknown[]) => void,
+  ): () => void {
+    // register callback
+    this.callbacks[symbol] = this.callbacks[symbol] || [];
+    this.callbacks[symbol].push(callback);
+
+    // ref-counted subscribe
+    const prev = this.subCount[symbol] ?? 0;
+    this.subCount[symbol] = prev + 1;
+    if (prev === 0) {
+      this.send({ type: "SUBSCRIBE", symbol });
+    }
+
+    // return unwatch function
+    return () => {
+      // remove callback
+      const list = this.callbacks[symbol] || [];
+      this.callbacks[symbol] = list.filter((cb) => cb !== callback);
+      if (this.callbacks[symbol].length === 0) {
+        delete this.callbacks[symbol];
+      }
+
+      // ref-counted unsubscribe
+      const cur = this.subCount[symbol] ?? 0;
+      if (cur <= 1) {
+        delete this.subCount[symbol];
+        this.send({ type: "UNSUBSCRIBE", symbol });
+      } else {
+        this.subCount[symbol] = cur - 1;
+      }
+    };
   }
 
   public static getInstance() {
@@ -24,6 +69,12 @@ export class Signalingmanager {
   private init() {
     this.ws.onopen = () => {
       this.initalized = true;
+
+      Object.keys(this.subCount).forEach((sym) => {
+        if (this.subCount[sym] > 0) {
+          this.ws.send(JSON.stringify({ type: "SUBSCRIBE", symbol: sym }));
+        }
+      });
       this.bufferedMessage.forEach((msg) => {
         this.ws.send(JSON.stringify(msg));
       });
@@ -35,8 +86,6 @@ export class Signalingmanager {
     this.ws.onmessage = (msg) => {
       try {
         const raw = msg.data;
-
-        console.log("WS received:", raw);
 
         const parsedmsg = JSON.parse(raw);
         const type = parsedmsg.symbol;
@@ -63,18 +112,10 @@ export class Signalingmanager {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public subscribe(message: any) {
-    const msgdesctructure = { ...message };
-    if (!this.initalized) {
-      this.bufferedMessage.push(msgdesctructure as never);
-      return;
-    }
-    this.ws.send(JSON.stringify(msgdesctructure));
-  }
-
   registerCallback(type: string, callback: (...args: unknown[]) => void) {
-    this.callbacks[type] = this.callbacks[type] || [];
+    if (!this.callbacks[type]) {
+      this.callbacks[type] = [];
+    }
     this.callbacks[type].push(callback);
   }
 
@@ -83,10 +124,15 @@ export class Signalingmanager {
       delete this.callbacks[type];
     }
   }
+
+  public subscribe(message: any) {
+    this.send(message);
+  }
+
   deregisterCallbackNew(type: string, callback: (...args: unknown[]) => void) {
     if (this.callbacks[type]) {
       this.callbacks[type] = this.callbacks[type].filter(
-        (cb) => cb !== callback
+        (cb) => cb !== callback,
       );
       if (this.callbacks[type].length === 0) {
         delete this.callbacks[type];

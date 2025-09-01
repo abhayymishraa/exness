@@ -5,6 +5,7 @@ import { Signalingmanager } from "../utils/subscription_manager";
 import {
   getChartData,
   processRealupdate,
+  resetLastCandle,
   type RealtimeUpdate,
 } from "../utils/chart_agg_ws_api";
 
@@ -38,22 +39,21 @@ export default function ChartComponent({
       wickDownColor: "#ef5350",
     });
 
+    function tick(trade) {
+      const candle = processRealupdate(trade as RealtimeUpdate, duration);
+      if (candle) {
+        candlestickSeries.update(candle);
+      }
+    }
+
     const fetchData = async () => {
       const rawData = await getChartData(symbol, duration);
       candlestickSeries.setData(rawData);
       chart.timeScale().fitContent();
 
-
       const signalingManager = Signalingmanager.getInstance();
 
-      signalingManager.registerCallback(symbol, (trade) => {
-        const candle = processRealupdate(trade as RealtimeUpdate, duration);
-        if (candle) {
-
-
-          candlestickSeries.update(candle);
-        }
-      });
+      signalingManager.registerCallback(symbol, tick);
 
       signalingManager.subscribe({ type: "SUBSCRIBE", symbol: symbol });
     };
@@ -68,9 +68,11 @@ export default function ChartComponent({
     return () => {
       window.removeEventListener("resize", handleResize);
       chart.remove();
+      resetLastCandle();
       const signaling = Signalingmanager.getInstance();
-      signaling.deregisterCallback(symbol);
-      signaling.subscribe({ type: "UNSUBSCRIBE", symbol: symbol });
+      signaling.deregisterCallbackNew(symbol, tick);
+
+      // signaling.subscribe({ type: "UNSUBSCRIBE", symbol: symbol });
     };
   }, [duration, symbol]);
 
