@@ -21,7 +21,7 @@ export class RedisManager {
   }
 
   private async connect() {
-    (await this.pubclient.connect(), await this.subclient.connect());
+    await this.pubclient.connect(), await this.subclient.connect();
   }
 
   async publish(channel: string, message: any) {
@@ -43,7 +43,7 @@ export class RedisManager {
   }
 
   async disconnect() {
-    await this.pubclient.disconnect();
-    await this.subclient.disconnect();
+    await this.pubclient.destroy();
+    await this.subclient.destroy();
   }
 }

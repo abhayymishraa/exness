@@ -48,6 +48,7 @@ export default function ChartComponent({
 
     const fetchData = async () => {
       const rawData = await getChartData(symbol, duration);
+      console.log("raw",rawData)
       candlestickSeries.setData(rawData);
       chart.timeScale().fitContent();
 

@@ -4,12 +4,11 @@ import jwt from "jsonwebtoken";
 import { SECRET, USERS } from "../data";
 import { credentailSchma } from "../types/userschema";
 import { usermiddleware } from "../middleware";
+import { toDisplayUSD, toInternalUSD } from "../utils/utils";
 export const userRouter = Router();
 
 userRouter.post("/signup", (req, res) => {
   try {
-    const { email, password } = req.body;
-
     const parseduserinfo = credentailSchma.safeParse(req.body);
 
     if (!parseduserinfo.success) {
@@ -18,6 +17,7 @@ userRouter.post("/signup", (req, res) => {
       });
     }
 
+    const { email, password } = parseduserinfo.data;
     const uuid = v5(email, "f0e1d2c3-b4a5-6789-9876-543210fedcba");
     if (USERS[uuid]) {
       return res.status(403).json({
@@ -30,7 +30,7 @@ userRouter.post("/signup", (req, res) => {
       password: password,
       assets: {},
       balance: {
-        usd_balance: 5000, // decimals 2
+        usd_balance: toInternalUSD(5000), // decimals 2
       },
     };
 
@@ -47,13 +47,13 @@ userRouter.post("/signup", (req, res) => {
 userRouter.post("/signin", (req, res) => {
   try {
     const parsedData = credentailSchma.safeParse(req.body);
-    const { email, password } = req.body;
 
     if (!parsedData.success) {
       return res.status(403).json({
         message: "Incorrect credential",
       });
     }
+    const { email, password } = parsedData.data;
 
     const uuid = v5(email, "f0e1d2c3-b4a5-6789-9876-543210fedcba");
 
@@ -66,7 +66,7 @@ userRouter.post("/signin", (req, res) => {
     const token = jwt.sign({ userId: uuid }, SECRET);
 
     return res.status(200).json({
-      jwt: token,
+      token: token,
     });
   } catch {
     return res.status(403).json({
@@ -78,5 +78,7 @@ userRouter.post("/signin", (req, res) => {
 userRouter.get("/balance", usermiddleware, (req, res) => {
   //@ts-ignore
   const userid = req.userId;
-  return res.status(200).json(USERS[userid]?.balance);
+  return res.status(200).json({
+    usd_balance: USERS[userid]!.balance.usd_balance,
+  });
 });

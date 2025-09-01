@@ -1,7 +1,7 @@
 export const PRECISION = 10000;
 
-export function toDisplayPrice(intPrice: number): string {
-  return (intPrice / PRECISION).toFixed(2); // <-- always 2 decimals
+export function toDisplayPrice(intPrice: number){
+  return Number.parseFloat((intPrice / PRECISION).toFixed(2)); 
 }
 
 export function toInternalPrice(price: number): number {

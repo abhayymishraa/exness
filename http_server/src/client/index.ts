@@ -1,5 +1,5 @@
 import { Client } from "pg";
-import { RedisManager } from "../utils/redisClient";
+import { createClient } from "redis";
 
 export const pgClient = new Client({
   host: "localhost",
@@ -7,6 +7,6 @@ export const pgClient = new Client({
   user: "user",
   password: "XYZ@123",
   database: "trades_db",
-}).connect();
+});
 
-export const redis = await RedisManager.getInstance();
+export const redisclient =  createClient().connect()

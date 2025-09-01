@@ -6,9 +6,9 @@ export function toDisplayPrice(intPrice: number): number {
   return intPrice / PRICE_SCALE;
 }
 
-export function toInternalPrice(price: number): number {
-  return Math.round(price * PRICE_SCALE);
-}
+  export function toInternalPrice(price: number): number {
+    return Math.round(price * PRICE_SCALE);
+  }
 
 export function toDisplayUSD(intUSD: number): number {
   return intUSD / USD_SCALE;
