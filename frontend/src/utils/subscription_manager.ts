@@ -1,11 +1,14 @@
+import type { Trade } from "../components/AskBidsTable";
+
 const url = "ws://localhost:8080";
 
 export class Signalingmanager {
   private ws: WebSocket;
   private static instance: Signalingmanager;
-  private bufferedMessage = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private bufferedMessage: any[] = [];
   private initalized: boolean = false;
-  private callbacks: { [symbol: string]: Array<(...args: unknown[]) => void> } =
+  private callbacks: { [symbol: string]: Array<(...args: Trade[]) => void> } =
     {};
   private subCount: Record<string, number> = {};
 
@@ -14,7 +17,7 @@ export class Signalingmanager {
     this.bufferedMessage = [];
     this.init();
   }
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private send(msg: any) {
     if (!this.initalized) {
       this.bufferedMessage.push(msg);
@@ -26,7 +29,7 @@ export class Signalingmanager {
   /** Public API: start watching a symbol with a callback. Returns an unwatch fn. */
   public watch(
     symbol: string,
-    callback: (...args: unknown[]) => void,
+    callback: (...args: unknown[]) => void
   ): () => void {
     // register callback
     this.callbacks[symbol] = this.callbacks[symbol] || [];
@@ -112,7 +115,7 @@ export class Signalingmanager {
     };
   }
 
-  registerCallback(type: string, callback: (...args: unknown[]) => void) {
+  registerCallback(type: string, callback: (...args: Trade[]) => void) {
     if (!this.callbacks[type]) {
       this.callbacks[type] = [];
     }
@@ -125,14 +128,15 @@ export class Signalingmanager {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public subscribe(message: any) {
     this.send(message);
   }
 
-  deregisterCallbackNew(type: string, callback: (...args: unknown[]) => void) {
+  deregisterCallbackNew(type: string, callback: (...args: Trade[]) => void) {
     if (this.callbacks[type]) {
       this.callbacks[type] = this.callbacks[type].filter(
-        (cb) => cb !== callback,
+        (cb) => cb !== callback
       );
       if (this.callbacks[type].length === 0) {
         delete this.callbacks[type];

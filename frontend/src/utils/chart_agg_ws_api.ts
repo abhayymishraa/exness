@@ -1,11 +1,12 @@
 import { type CandlestickData, type UTCTimestamp } from "lightweight-charts";
 import { getKlineData } from "../api/trade";
 import { Duration, type SYMBOL } from "../utils/constants";
+import { toDisplayPrice } from "./utils";
 
 export interface RealtimeUpdate {
   symbol: SYMBOL;
-  bid: number;
-  ask: number;
+  buyPrice: number;
+  sellPrice: number;
   time: number;
 }
 
@@ -23,7 +24,7 @@ function getbucketsize(duration: Duration): number {
   }
 }
 
-let lastCandles: Record<string, CandlestickData | null> = {};
+const lastCandles: Record<string, CandlestickData | null> = {};
 
 function key(symbol: SYMBOL, duration: Duration) {
   return `${symbol}_${duration}`;
@@ -31,12 +32,12 @@ function key(symbol: SYMBOL, duration: Duration) {
 
 export function processRealupdate(
   trade: RealtimeUpdate,
-  duration: Duration,
-): CandlestickData | null {
+  duration: Duration
+): CandlestickData {
   const k = key(trade.symbol, duration);
   let lastCandle = lastCandles[k];
 
-  const price = trade.bid;
+  const price = toDisplayPrice(trade.sellPrice);
   const bucketSize = getbucketsize(duration);
   const currentbucket = (Math.floor(trade.time / bucketSize) *
     bucketSize) as UTCTimestamp;
@@ -66,7 +67,7 @@ export function processRealupdate(
 export function initLastCandle(
   symbol: SYMBOL,
   duration: Duration,
-  data: CandlestickData[],
+  data: CandlestickData[]
 ) {
   const k = key(symbol, duration);
   lastCandles[k] = data.length > 0 ? data[data.length - 1] : null;
@@ -74,7 +75,7 @@ export function initLastCandle(
 
 export async function getChartData(symbol: SYMBOL, duration: Duration) {
   const response = await getKlineData(symbol, duration);
-  console.log("response", response)
+  console.log("response", response);
   initLastCandle(symbol, duration, response.candles);
   return response.candles;
 }

@@ -7,7 +7,8 @@ export function usermiddleware(
   res: Response,
   next: NextFunction
 ) {
-  const authenticationtoken = req.headers["authorization"];
+  const authenticationtoken = req.headers.authorization;
+  console.log("authentication token", authenticationtoken);
   if (!authenticationtoken) {
     return res.status(403).json({
       message: "Incorrect credentials",

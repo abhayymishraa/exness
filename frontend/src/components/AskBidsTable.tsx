@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Signalingmanager } from "../utils/subscription_manager";
 import { Channels, type SYMBOL } from "../utils/constants";
+import { toDisplayPrice } from "../utils/utils";
 
 export interface Trade {
-  bid: number;
-  ask: number;
+  buyPrice: number;
+  sellPrice: number;
   symbol: SYMBOL;
 }
 export default function AskBids() {
@@ -33,8 +34,8 @@ export default function AskBids() {
       setBidsAsks((prev) => ({
         ...prev,
         [trade.symbol]: {
-          bids: trade?.bid,
-          asks: trade?.ask,
+          bids: toDisplayPrice(trade?.buyPrice),
+          asks: toDisplayPrice(trade?.sellPrice),
           symbol: trade?.symbol,
         },
       }));
@@ -62,8 +63,8 @@ export default function AskBids() {
 
   return (
     <div>
-      <div className="relative overflow-x-auto">
-        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+      <div className=" ">
+        <table className=" w-sm text-sm text-left text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
               <th scope="col" className="px-6 py-3">

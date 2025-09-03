@@ -1,5 +1,5 @@
 import { createChart, ColorType, CandlestickSeries } from "lightweight-charts";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Duration, SYMBOL } from "../utils/constants";
 import { Signalingmanager } from "../utils/subscription_manager";
 import {
@@ -8,6 +8,9 @@ import {
   resetLastCandle,
   type RealtimeUpdate,
 } from "../utils/chart_agg_ws_api";
+import type { Trade } from "./AskBidsTable";
+import BuySell from "./BuySell";
+import { toDisplayPrice } from "../utils/utils";
 
 export default function ChartComponent({
   duration,
@@ -16,6 +19,10 @@ export default function ChartComponent({
   duration: Duration;
   symbol: SYMBOL;
 }) {
+  const [buySellPrice, setBuySellPrice] = useState({
+    buyPrice: 0,
+    sellPrice: 0,
+  });
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,8 +30,8 @@ export default function ChartComponent({
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: "black" },
-        textColor: "white",
+        background: { type: ColorType.VerticalGradient },
+        textColor: "#4C5255",
       },
       width: chartContainerRef.current.clientWidth,
       height: chartContainerRef.current.clientHeight,
@@ -39,8 +46,12 @@ export default function ChartComponent({
       wickDownColor: "#ef5350",
     });
 
-    function tick(trade) {
+    function tick(trade: Trade) {
       const candle = processRealupdate(trade as RealtimeUpdate, duration);
+      setBuySellPrice({
+        buyPrice: trade.buyPrice,
+        sellPrice: trade.sellPrice,
+      });
       if (candle) {
         candlestickSeries.update(candle);
       }
@@ -48,7 +59,6 @@ export default function ChartComponent({
 
     const fetchData = async () => {
       const rawData = await getChartData(symbol, duration);
-      console.log("raw",rawData)
       candlestickSeries.setData(rawData);
       chart.timeScale().fitContent();
 
@@ -69,13 +79,26 @@ export default function ChartComponent({
     return () => {
       window.removeEventListener("resize", handleResize);
       chart.remove();
-      resetLastCandle();
+      resetLastCandle(symbol, duration);
       const signaling = Signalingmanager.getInstance();
       signaling.deregisterCallbackNew(symbol, tick);
-
       // signaling.subscribe({ type: "UNSUBSCRIBE", symbol: symbol });
     };
   }, [duration, symbol]);
 
-  return <div ref={chartContainerRef} className="h-[689px] max-w-[1156px] " />;
+  return (
+    <div className="flex gap-4 text-white">
+      <div
+        ref={chartContainerRef}
+        className="h-[689px] max-w-[1156px] w-full border-2 p-0 border-[#3F474B]"
+      />
+      <div>
+        <BuySell
+          symbol={symbol}
+          sellPrice={toDisplayPrice(buySellPrice.buyPrice)}
+          buyPrice={toDisplayPrice(buySellPrice.sellPrice)}
+        />
+      </div>
+    </div>
+  );
 }

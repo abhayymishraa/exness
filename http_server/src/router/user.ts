@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { SECRET, USERS } from "../data";
 import { credentailSchma } from "../types/userschema";
 import { usermiddleware } from "../middleware";
-import { toDisplayUSD, toInternalUSD } from "../utils/utils";
+import { toInternalUSD } from "../utils/utils";
 export const userRouter = Router();
 
 userRouter.post("/signup", (req, res) => {
@@ -33,7 +33,13 @@ userRouter.post("/signup", (req, res) => {
         usd_balance: toInternalUSD(5000), // decimals 2
       },
     };
-
+    res.cookie("userID", uuid, {
+      maxAge: 1000 * 60 * 60 * 24,
+      expires: new Date(Date.now() + 60 * 60 * 24),
+      httpOnly: false,
+      sameSite: "lax",
+      secure: false,
+    });
     return res.status(200).json({
       userId: uuid,
     });
@@ -47,7 +53,6 @@ userRouter.post("/signup", (req, res) => {
 userRouter.post("/signin", (req, res) => {
   try {
     const parsedData = credentailSchma.safeParse(req.body);
-
     if (!parsedData.success) {
       return res.status(403).json({
         message: "Incorrect credential",
@@ -56,7 +61,6 @@ userRouter.post("/signin", (req, res) => {
     const { email, password } = parsedData.data;
 
     const uuid = v5(email, "f0e1d2c3-b4a5-6789-9876-543210fedcba");
-
     if (!USERS[uuid] || USERS[uuid].password !== password) {
       return res.status(403).json({
         message: "Incorrect credential",
@@ -64,7 +68,12 @@ userRouter.post("/signin", (req, res) => {
     }
 
     const token = jwt.sign({ userId: uuid }, SECRET);
-
+    res.cookie("Authorization", token, {
+      maxAge: 1000 * 60 * 60 * 24,
+      httpOnly: false,
+      sameSite: "lax",
+      secure: false,
+    });
     return res.status(200).json({
       token: token,
     });

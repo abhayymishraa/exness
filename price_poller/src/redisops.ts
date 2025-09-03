@@ -1,4 +1,4 @@
-import { fromInternalPrice } from "./utils";
+import { fromInternalPrice, toInternalPrice } from "./utils";
 
 type SymbolMapKey = "SOLUSDT" | "ETHUSDT" | "BTCUSDT";
 
@@ -6,7 +6,7 @@ export function pushToRedis(
   redis: any,
   value: any,
   type: SymbolMapKey,
-  time: any,
+  time: any
 ) {
   let symbolmap = {
     SOLUSDT: "SOL",
@@ -14,17 +14,19 @@ export function pushToRedis(
     BTCUSDT: "BTC",
   };
   //float
+
   const realVal = fromInternalPrice(value);
-  const ask = Number((realVal * 1.01).toFixed(2));
-  const bid = Number(realVal.toFixed(2));
+  const ask = toInternalPrice(Number((realVal * 1.01).toFixed(2)));
+  const bid = toInternalPrice(Number(realVal.toFixed(2)));
 
   redis.publish(
     symbolmap[type],
     JSON.stringify({
-      ask,
-      bid,
       symbol: symbolmap[type],
+      buyPrice: ask,
+      sellPrice: bid,
+      decimals: 4,
       time: Math.floor(new Date(time).getTime() / 1000),
-    }),
+    })
   );
 }
