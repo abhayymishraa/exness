@@ -12,8 +12,8 @@ import { tradeRouter } from "./router/trade";
 const port = 5000;
 
 export const pgClient = new Client({
-  host: "localhost",
-  port: 5433,
+  host: "timescale_db",
+  port: 5432,
   user: "user",
   password: "XYZ@123",
   database: "trades_db",
@@ -21,11 +21,13 @@ export const pgClient = new Client({
 
 await pgClient.connect();
 
+
+
 export const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:3000", "http://localhost:5173"], 
     credentials: true,
   })
 );

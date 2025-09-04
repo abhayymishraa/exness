@@ -1,19 +1,17 @@
-FROM bun:22-alpine
+FROM oven/bun:latest
 
 WORKDIR /home
 
-RUN npm i -g bun
-
-RUN npm i -g serve
+RUN bun install -g serve
 
 COPY package.json .
 
 RUN bun install
 
-RUN bun run build
+COPY . .
 
-COPY dist .
+RUN bun run build  
 
 EXPOSE 3000
 
-CMD [ "serve", "-s" ]
+CMD [ "serve", "-s", "dist" ]

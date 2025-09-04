@@ -8,7 +8,9 @@ const BATCH_TIMINIGS = 10000; //ms
 let tradeBatch: any = [];
 
 async function main() {
-  const redis = await createClient().connect();
+  const redis = await createClient({
+    url: "redis://redis_service:6379",
+  }).connect();
   console.log("redis is connected");
 
   const batchprocess = setInterval(() => {
@@ -25,7 +27,7 @@ async function main() {
         method: "SUBSCRIBE",
         params: ["btcusdt@aggTrade", "ethusdt@aggTrade", "solusdt@aggTrade"],
         id: 1,
-      }),
+      })
     );
   });
 

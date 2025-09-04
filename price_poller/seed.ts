@@ -82,8 +82,8 @@
 import { Client } from "pg";
 
 const client = new Client({
-  host: "localhost",
-  port: 5433,
+  host: "timescale_db",
+  port: 5432,
   user: "user",
   password: "XYZ@123",
   database: "trades_db",

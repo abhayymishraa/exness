@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import prisma from "./dbconfig";
 
 // export async function processandSavetrade(params: any, price: any) {
