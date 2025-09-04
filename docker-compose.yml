@@ -8,9 +8,6 @@ services:
       - "3000:3000"
     networks:
       - exness-network
-    volumes:
-      - ./frontend:/home
-      - /home/node_modules
     depends_on:
       - backend
       - ws
