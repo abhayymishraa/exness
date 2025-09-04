@@ -2,12 +2,14 @@ import {
   createChart,
   ColorType,
   CandlestickSeries,
+  LineSeries,
   type IChartApi,
   type CandlestickData,
   type CandlestickSeriesOptions,
   type CandlestickStyleOptions,
   type DeepPartial,
   type ISeriesApi,
+  type LineData, // Used for buyPriceSeries updates
   type SeriesOptionsCommon,
   type Time,
   type WhitespaceData,
@@ -23,6 +25,7 @@ import {
   type RealtimeUpdate,
 } from "../utils/chart_agg_ws_api";
 import type { Trade } from "./AskBidsTable";
+import { toDisplayPrice } from "../utils/utils";
 
 export default function ChartComponent({
   duration,
@@ -71,6 +74,8 @@ export default function ChartComponent({
 
     console.log("Creating chart for symbol:", symbol, "duration:", duration);
 
+    const containerRef = chartContainerRef.current;
+
     let candlestickSeries: ISeriesApi<
       "Candlestick",
       Time,
@@ -78,6 +83,7 @@ export default function ChartComponent({
       CandlestickSeriesOptions,
       DeepPartial<CandlestickStyleOptions & SeriesOptionsCommon>
     > | null = null;
+    let buyPriceSeries: ISeriesApi<"Line"> | null = null;
     let chart: IChartApi | null = null;
     let unwatch: (() => void) | null = null;
 
@@ -103,8 +109,16 @@ export default function ChartComponent({
         upColor: "#158BF9",
         downColor: "#EB483F",
         borderVisible: false,
-        wickUpColor: "#158BF9",
+        wickUpColor: "#EB483F",
         wickDownColor: "#EB483F",
+      });
+
+      buyPriceSeries = chart.addSeries(LineSeries, {
+        color: "#4CAF50",
+        lineVisible: false,
+        lineWidth: 1,
+        priceLineVisible: true,
+        lastValueVisible: true,
       });
 
       const tickWrapper = (trade: Trade) => {
@@ -116,18 +130,72 @@ export default function ChartComponent({
           buyPrice: trade.buyPrice || 0,
           sellPrice: trade.sellPrice || 0,
         };
+
         if (onPriceUpdate && prices.buyPrice > 0 && prices.sellPrice > 0) {
           onPriceUpdate(prices);
         }
 
         if (candle && candlestickSeries) {
           candlestickSeries.update(candle);
+
+          if (buyPriceSeries && prices.buyPrice > 0) {
+            const buyPricePoint: LineData = {
+              time: candle.time,
+              value: toDisplayPrice(prices.buyPrice),
+            };
+            buyPriceSeries.update(buyPricePoint);
+          }
         }
       };
 
       const rawData = await getChartData(symbol, duration);
       candlestickSeries.setData(rawData);
-      chart.timeScale().fitContent();
+
+      // Initialize buy price line with empty data to start
+      if (rawData.length > 0) {
+        // Create initial data points for buy price line using the candlestick data
+        const initialBuyData = rawData.map((candle: CandlestickData<Time>) => ({
+          time: candle.time,
+          value: candle.close * 0.999,
+        }));
+        buyPriceSeries.setData(initialBuyData);
+      }
+
+      if (rawData.length > 10) {
+        const visibleRange = {
+          from: Math.max(0, rawData.length - 30), // Show last 30 candles or all if less
+          to: rawData.length - 1,
+        };
+        chart.timeScale().setVisibleLogicalRange(visibleRange);
+      } else {
+        chart.timeScale().fitContent();
+      }
+
+      const legend = document.createElement("div");
+      legend.className = "chart-legend";
+      legend.style.position = "absolute";
+      legend.style.left = "12px";
+      legend.style.top = "12px";
+      legend.style.zIndex = "2";
+      legend.style.fontSize = "12px";
+      legend.style.padding = "5px 8px";
+      legend.style.borderRadius = "4px";
+      legend.style.backgroundColor = "rgba(20, 29, 34, 0.8)";
+      legend.style.color = "white";
+      legend.style.display = "flex";
+      legend.style.gap = "10px";
+
+      const candleLabel = document.createElement("div");
+      candleLabel.innerHTML =
+        '<span style="color:#158BF9; font-size:16px;">●</span> Price';
+      legend.appendChild(candleLabel);
+
+      const buyLabel = document.createElement("div");
+      buyLabel.innerHTML =
+        '<span style="color:#4CAF50; font-size:16px;">●</span> Buy Price';
+      legend.appendChild(buyLabel);
+
+      containerRef.appendChild(legend);
 
       const signalingManager = Signalingmanager.getInstance();
       unwatch = signalingManager.watch(symbol, tickWrapper);
@@ -164,6 +232,12 @@ export default function ChartComponent({
 
       resetLastCandle(symbol, duration);
 
+      // Remove the legend if it exists
+      const legend = containerRef?.querySelector(".chart-legend");
+      if (legend) {
+        legend.remove();
+      }
+
       if (chart) {
         chart.remove();
         chart = null;
@@ -174,6 +248,7 @@ export default function ChartComponent({
       }
 
       candlestickSeries = null;
+      buyPriceSeries = null;
     };
   }, [duration, symbol, onPriceUpdate]);
 

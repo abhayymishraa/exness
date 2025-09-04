@@ -8,7 +8,14 @@ export interface Trade {
   sellPrice: number;
   symbol: SYMBOL;
 }
-export default function AskBids() {
+
+const imageUrl = {
+  SOL: "https://i.postimg.cc/9MhDvsK9/b2f0c70f-4fb2-4472-9fe7-480ad1592421.png",
+  ETH: "https://i.postimg.cc/gcKhPkY2/3a8c9fe6-2a76-4ace-aa07-415d994de6f0.png",
+  BTC: "https://i.postimg.cc/TPh0K530/87496d50-2408-43e1-ad4c-78b47b448a6a.png",
+};
+
+export default function AskBids({ symbol }: { symbol?: SYMBOL }) {
   const [bid_asks, setBidsAsks] = useState({
     SOL: {
       bids: 0,
@@ -28,7 +35,7 @@ export default function AskBids() {
   });
 
   useEffect(() => {
-    const signalingmanger = Signalingmanager.getInstance();
+    const signalingManager = Signalingmanager.getInstance();
 
     const callback = (trade: Trade) => {
       setBidsAsks((prev) => ({
@@ -41,62 +48,52 @@ export default function AskBids() {
       }));
     };
 
-    // register + subscribe for all symbols
-    Object.values(Channels).forEach((ch) => {
-      signalingmanger.registerCallback(ch, callback);
-      signalingmanger.subscribe({
-        type: "SUBSCRIBE",
-        symbol: ch,
-      });
-    });
+    const unwatchFunctions = Object.values(Channels).map((ch) =>
+      signalingManager.watch(ch, callback)
+    );
 
     return () => {
-      Object.values(Channels).forEach((ch) => {
-        signalingmanger.deregisterCallbackNew(ch, callback);
-        signalingmanger.subscribe({
-          type: "UNSUBSCRIBE",
-          symbol: ch,
-        });
-      });
+      unwatchFunctions.forEach((unwatch) => unwatch());
     };
   }, []);
 
   return (
-    <div>
-      <div className=" ">
-        <table className=" w-sm text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" className="px-6 py-3">
-                Symbol
+    <div className="w-full">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-xs text-white/60">
+            <th className="py-2 text-left">Symbol</th>
+            <th className="py-2 text-right">Ask</th>
+            <th className="py-2 text-right">Bid</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[#263136]/40">
+          {Object.values(bid_asks).map((item) => (
+            <tr
+              key={item.symbol}
+              className={`hover:bg-[#1c2a31] transition-colors ${
+                symbol === `${item.symbol}USDT` ? "bg-[#1c2a31]" : ""
+              }`}
+            >
+              <th className="py-3 text-left font-medium text-white ">
+                <img
+                  src={imageUrl[item.symbol as keyof typeof imageUrl]}
+                  alt={item.symbol}
+                  className="h-5 w-5 rounded-full inline-block mr-2"
+                />
+                {item.symbol}
+                <span className="text-xs text-white/50 ml-1">USDT</span>
               </th>
-              <th scope="col" className="px-6 py-3">
-                Ask
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Bid
-              </th>
+              <td className="py-3 text-right font-mono text-[#EB483F]">
+                {item.asks}
+              </td>
+              <td className="py-3 text-right font-mono text-[#158BF9]">
+                {item.bids}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {Object.values(bid_asks).map((item) => (
-              <tr
-                key={item.symbol}
-                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200"
-              >
-                <th
-                  scope="row"
-                  className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                >
-                  {item.symbol}
-                </th>
-                <td className="px-6 py-4">{item.asks}</td>
-                <td className="px-6 py-4">{item.bids}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

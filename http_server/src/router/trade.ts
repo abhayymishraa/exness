@@ -3,6 +3,7 @@ import { usermiddleware } from "../middleware";
 import { CLOSEDORDERS, ORDERS, PRICESTORE, USERS } from "../data";
 import { tradeSchema } from "../types/userschema";
 import { v4 } from "uuid";
+import { USD_SCALE } from "../utils/utils";
 
 export const tradeRouter = Router();
 
@@ -14,7 +15,6 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
         message: "Incorrect inputs",
       });
     }
-
     const { asset, type, margin, leverage } = tradeschema.data;
 
     //@ts-ignore
@@ -27,18 +27,18 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
         message: "Incorrect inputs",
       });
     }
-    // current price with 1 percent spread
     const basePrice = PRICESTORE[asset];
 
-    const currentprice = type === "buy" ? basePrice?.ask : basePrice?.bid;
+    const currentprice =
+      type === "buy"
+        ? basePrice?.ask
+          ? Number(basePrice.ask)
+          : 0
+        : basePrice?.bid
+        ? Number(basePrice.bid)
+        : 0;
 
     if (user.balance.usd_balance < margin) {
-      return res.status(411).json({
-        message: "Incorrect inputs",
-      });
-    }
-
-    if (typeof currentprice !== "number") {
       return res.status(411).json({
         message: "Incorrect inputs",
       });
@@ -54,7 +54,7 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
 
     const order = {
       type,
-      margin,
+      margin, // 2 decimals
       leverage,
       asset,
       openPrice: currentprice as number,
@@ -105,7 +105,7 @@ tradeRouter.post("/close", usermiddleware, (req, res) => {
     const closeprice = order.type === "buy" ? price?.bid : price?.ask;
 
     let pnl = 0;
-    const totalamountwithleveraged = order.margin * order.leverage;
+    const totalamountwithleveraged = order.margin * order.leverage * USD_SCALE;
     if (order.type === "buy") {
       // difference
       const pricechange = closeprice! - order.openPrice;
@@ -116,13 +116,13 @@ tradeRouter.post("/close", usermiddleware, (req, res) => {
       const pricechange = order.openPrice - closeprice!;
       pnl = (pricechange / order.openPrice) * totalamountwithleveraged;
     }
-    user.balance.usd_balance += order.margin + Math.round(pnl);
+    user.balance.usd_balance += order.margin + Math.round(pnl / USD_SCALE);
 
     if (!CLOSEDORDERS[userid]) CLOSEDORDERS[userid] = {};
     CLOSEDORDERS[userid][orderid] = {
       ...order,
       closePrice: closeprice,
-      pnl: Math.round(pnl),
+      pnl: Math.round(pnl / USD_SCALE),
       closeTimestamp: Date.now(),
     };
 
@@ -130,7 +130,7 @@ tradeRouter.post("/close", usermiddleware, (req, res) => {
 
     return res.status(200).json({
       message: "Positio closed success",
-      pnl: Math.round(pnl),
+      pnl: Math.round(pnl / USD_SCALE),
     });
   } catch (e) {
     console.log("Err", e);

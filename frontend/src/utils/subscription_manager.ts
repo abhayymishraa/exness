@@ -5,9 +5,8 @@ const url = "ws://localhost:8080";
 export class Signalingmanager {
   private ws: WebSocket;
   private static instance: Signalingmanager;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private bufferedMessage: any[] = [];
-  private initalized: boolean = false;
+  private bufferedMessage: Record<string, unknown>[] = [];
+  private initialized: boolean = false;
   private callbacks: { [symbol: string]: Array<(...args: Trade[]) => void> } =
     {};
   private subCount: Record<string, number> = {};
@@ -17,49 +16,45 @@ export class Signalingmanager {
     this.bufferedMessage = [];
     this.init();
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private send(msg: any) {
-    if (!this.initalized) {
+
+  private send(msg: Record<string, unknown>) {
+    if (!this.initialized) {
       this.bufferedMessage.push(msg);
       return;
     }
     this.ws.send(JSON.stringify(msg));
   }
 
-  /** Public API: start watching a symbol with a callback. Returns an unwatch fn. */
-  public watch(
-    symbol: string,
-    callback: (...args: unknown[]) => void
-  ): () => void {
-    // register callback
+  public watch(symbol: string, callback: (trade: Trade) => void): () => void {
     this.callbacks[symbol] = this.callbacks[symbol] || [];
     this.callbacks[symbol].push(callback);
 
-    // ref-counted subscribe
     const prev = this.subCount[symbol] ?? 0;
     this.subCount[symbol] = prev + 1;
     if (prev === 0) {
       this.send({ type: "SUBSCRIBE", symbol });
     }
 
-    // return unwatch function
     return () => {
-      // remove callback
-      const list = this.callbacks[symbol] || [];
-      this.callbacks[symbol] = list.filter((cb) => cb !== callback);
-      if (this.callbacks[symbol].length === 0) {
-        delete this.callbacks[symbol];
-      }
-
-      // ref-counted unsubscribe
-      const cur = this.subCount[symbol] ?? 0;
-      if (cur <= 1) {
-        delete this.subCount[symbol];
-        this.send({ type: "UNSUBSCRIBE", symbol });
-      } else {
-        this.subCount[symbol] = cur - 1;
-      }
+      this.unwatch(symbol, callback);
     };
+  }
+
+  private unwatch(symbol: string, callback: (trade: Trade) => void) {
+    const list = this.callbacks[symbol] || [];
+    this.callbacks[symbol] = list.filter((cb) => cb !== callback);
+
+    if (this.callbacks[symbol].length === 0) {
+      delete this.callbacks[symbol];
+    }
+
+    const cur = this.subCount[symbol] ?? 0;
+    if (cur <= 1) {
+      delete this.subCount[symbol];
+      this.send({ type: "UNSUBSCRIBE", symbol });
+    } else {
+      this.subCount[symbol] = cur - 1;
+    }
   }
 
   public static getInstance() {
@@ -71,76 +66,81 @@ export class Signalingmanager {
 
   private init() {
     this.ws.onopen = () => {
-      this.initalized = true;
+      this.initialized = true;
 
       Object.keys(this.subCount).forEach((sym) => {
         if (this.subCount[sym] > 0) {
           this.ws.send(JSON.stringify({ type: "SUBSCRIBE", symbol: sym }));
         }
       });
+
       this.bufferedMessage.forEach((msg) => {
         this.ws.send(JSON.stringify(msg));
       });
       this.bufferedMessage = [];
 
-      console.log("ws is started");
+      console.log("WebSocket connection established");
     };
 
     this.ws.onmessage = (msg) => {
-      try {
-        const raw = msg.data;
+      const raw = msg.data;
+      const parsedMsg = JSON.parse(raw);
+      const symbol = parsedMsg.symbol;
 
-        const parsedmsg = JSON.parse(raw);
-        const type = parsedmsg.symbol;
-
-        if (this.callbacks[type]) {
-          this.callbacks[type].forEach((callback) => {
-            callback(parsedmsg);
-          });
-        }
-      } catch (err) {
-        console.warn("Received non-JSON message:", err);
+      if (this.callbacks[symbol]) {
+        const callbacksCopy = [...this.callbacks[symbol]];
+        callbacksCopy.forEach((callback) => {
+          callback(parsedMsg);
+        });
       }
     };
 
     this.ws.onerror = (err) => {
-      console.log("Error form the websockert", err);
+      console.error("WebSocket error:", err);
     };
 
     this.ws.onclose = () => {
+      console.log("WebSocket closed, attempting to reconnect...");
+      this.initialized = false;
       setTimeout(() => {
         this.ws = new WebSocket(url);
         this.init();
-      }, 20000);
+      }, 5000);
     };
   }
 
-  registerCallback(type: string, callback: (...args: Trade[]) => void) {
-    if (!this.callbacks[type]) {
-      this.callbacks[type] = [];
+  registerCallback(symbol: string, callback: (...args: Trade[]) => void) {
+    if (!this.callbacks[symbol]) {
+      this.callbacks[symbol] = [];
     }
-    this.callbacks[type].push(callback);
+    this.callbacks[symbol].push(callback);
   }
 
-  deregisterCallback(type: string) {
-    if (this.callbacks[type]) {
-      delete this.callbacks[type];
+  deregisterCallback(symbol: string) {
+    if (this.callbacks[symbol]) {
+      delete this.callbacks[symbol];
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public subscribe(message: any) {
+  public subscribe(message: Record<string, unknown>) {
     this.send(message);
   }
 
-  deregisterCallbackNew(type: string, callback: (...args: Trade[]) => void) {
-    if (this.callbacks[type]) {
-      this.callbacks[type] = this.callbacks[type].filter(
+  deregisterCallbackNew(symbol: string, callback: (...args: Trade[]) => void) {
+    if (this.callbacks[symbol]) {
+      this.callbacks[symbol] = this.callbacks[symbol].filter(
         (cb) => cb !== callback
       );
-      if (this.callbacks[type].length === 0) {
-        delete this.callbacks[type];
+      if (this.callbacks[symbol].length === 0) {
+        delete this.callbacks[symbol];
       }
     }
+  }
+
+  public getActiveSubscriptions() {
+    return {
+      callbacks: Object.keys(this.callbacks),
+      subCounts: { ...this.subCount },
+    };
   }
 }

@@ -3,7 +3,7 @@ import cors from "cors";
 import { Client } from "pg";
 import { userRouter } from "./router/user";
 import { RedisManager } from "./utils/redisClient";
-import {  PRICESTORE } from "./data";
+import { PRICESTORE } from "./data";
 import { candelrouter } from "./router/candles";
 import { tradesRouter } from "./router/trades";
 import { assetrouter } from "./router/asset";
@@ -23,12 +23,12 @@ await pgClient.connect();
 
 export const app = express();
 app.use(express.json());
-app.use(cors(
- {
-  origin: "http://localhost:5173",
-  credentials: true
- }
-));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use("/api/v1/trades", tradesRouter);
 app.use("/api/v1/trade", tradeRouter);
@@ -41,9 +41,12 @@ async function startpriceuddate() {
   ["BTC", "ETH", "SOL"].forEach(async (asset) => {
     await redis.subscribe(asset, (msg: string) => {
       const data = JSON.parse(msg);
-      PRICESTORE[asset] = { ask: data.ask, bid: data.bid };
+      PRICESTORE[asset] = { ask: data.sellPrice, bid: data.buyPrice };
     });
   });
+  setInterval(() => {
+    console.log(PRICESTORE);
+  }, 20_000);
 }
 
 startpriceuddate();
