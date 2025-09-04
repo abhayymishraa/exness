@@ -12,4 +12,5 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["bun", "run", "src/index.ts"]
+CMD ["sh", "-c", "bunx prisma db push && bun seed.ts && bun run src/index.ts "]
+
