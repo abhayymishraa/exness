@@ -18,7 +18,6 @@ export default function Signin() {
   const [submitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);

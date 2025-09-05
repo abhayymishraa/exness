@@ -4,7 +4,7 @@ import { convertoUsdPrice, toDisplayPrice } from "../utils/utils";
 import type { SYMBOL } from "../utils/constants";
 import type { Asset } from "../types/asset";
 
-const BASE_URL = "http://localhost:5000/api/v1";
+const BASE_URL = import.meta.env.VITE_API_URL ||"http://localhost:5000/api/v1";
 export async function getKlineData(
   asset: any,
   duration: any,

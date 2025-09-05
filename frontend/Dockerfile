@@ -9,6 +9,8 @@ RUN bun install
 
 COPY . .
 
+ENV VITE_API_URL=https://backend.exness.elevenai.xyz/api/v1
+
 RUN bun run build
 
 EXPOSE 3000
