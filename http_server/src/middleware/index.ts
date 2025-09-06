@@ -7,27 +7,21 @@ export function usermiddleware(
   res: Response,
   next: NextFunction
 ) {
-  const authenticationtoken = req.headers.authorization;
-  if (!authenticationtoken) {
-    return res.status(403).json({
-      message: "Incorrect credentials",
-    });
+  const token = req.headers.authorization || req.cookies?.Authorization;
+  if (!token) {
+    return res.status(403).json({ message: "Incorrect credentials" });
   }
 
   try {
-    const decoded = jwt.verify(authenticationtoken, SECRET);
+    const decoded = jwt.verify(token, SECRET) as { userId: string };
     //@ts-ignore
     req.userId = decoded.userId;
-    //@ts-ignore
+
     if (!USERS[decoded.userId]) {
-      return res.status(403).json({
-        message: "Incorrect credentials",
-      });
+      return res.status(403).json({ message: "Incorrect credentials" });
     }
     next();
   } catch {
-    return res.status(403).json({
-      message: "Incorrect credentials",
-    });
+    return res.status(403).json({ message: "Incorrect credentials" });
   }
 }
