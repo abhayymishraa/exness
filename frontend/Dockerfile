@@ -8,8 +8,9 @@ COPY package.json bun.lock ./
 RUN bun install
 
 COPY . .
-
+    
 ENV VITE_API_URL=https://backend.exness.elevenai.xyz/api/v1
+ENV VITE_WEBSOCKET_URL=wss://ws.exness.elevenai.xyz
 
 RUN bun run build
 
