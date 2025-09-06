@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { SECRET, USERS } from "../data";
 import { credentailSchma } from "../types/userschema";
 import { usermiddleware } from "../middleware";
-import { toInternalUSD } from "../utils/utils";
+import { getCookieOptions, toInternalUSD } from "../utils/utils";
 export const userRouter = Router();
 
 userRouter.post("/signup", (req, res) => {
@@ -33,13 +33,7 @@ userRouter.post("/signup", (req, res) => {
         usd_balance: toInternalUSD(5000), // decimals 2
       },
     };
-    res.cookie("userID", uuid, {
-      maxAge: 1000 * 60 * 60 * 24,
-      expires: new Date(Date.now() + 60 * 60 * 24),
-      httpOnly: false,
-      sameSite: "lax",
-      secure: false,
-    });
+    res.cookie("userID", uuid, getCookieOptions());
     return res.status(200).json({
       userId: uuid,
     });
@@ -68,12 +62,7 @@ userRouter.post("/signin", (req, res) => {
     }
 
     const token = jwt.sign({ userId: uuid }, SECRET);
-    res.cookie("Authorization", token, {
-      maxAge: 1000 * 60 * 60 * 24,
-      httpOnly: false,
-      sameSite: "lax",
-      secure: false,
-    });
+    res.cookie("Authorization", token, getCookieOptions());
     return res.status(200).json({
       token: token,
     });
