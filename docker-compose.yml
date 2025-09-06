@@ -21,8 +21,6 @@ services:
       - "127.0.0.1:5000:5000"
     networks:
       - exness-network
-    volumes:
-      - ./http_server:/app
     depends_on:
       db:
         condition: service_healthy
