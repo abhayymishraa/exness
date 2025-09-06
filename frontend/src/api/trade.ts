@@ -4,7 +4,7 @@ import { convertoUsdPrice, toDisplayPrice } from "../utils/utils";
 import type { SYMBOL } from "../utils/constants";
 import type { Asset } from "../types/asset";
 
-const BASE_URL = import.meta.env.VITE_API_URL ||"http://localhost:5000/api/v1";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
 export async function getKlineData(
   asset: any,
   duration: any,
@@ -88,6 +88,7 @@ export async function findUserAmount() {
       headers: {
         Authorization: token,
       },
+      withCredentials: true,
     });
     return res.data;
   } catch (error) {
@@ -103,6 +104,7 @@ export async function getopentrades(token: string) {
       headers: {
         Authorization: token,
       },
+      withCredentials: true,
     });
     return data;
   } catch (e) {
@@ -116,6 +118,7 @@ export async function getclosedtrades(token: string) {
       headers: {
         Authorization: token,
       },
+      withCredentials: true,
     });
     return data;
   } catch (e) {
@@ -134,6 +137,7 @@ export async function closetrade(token: string, orderId: string) {
         headers: {
           Authorization: token,
         },
+        withCredentials: true,
       }
     );
     return data;
@@ -182,6 +186,7 @@ export async function createTrade({
 
     const { data } = await axios.post(`${BASE_URL}/trade`, payload, {
       headers: { Authorization: token },
+      withCredentials: true,
     });
 
     return data;
