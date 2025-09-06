@@ -20,9 +20,7 @@ export default function Trading() {
       try {
         const data = await findUserAmount();
         if (!data.usd_balance) {
-          if (typeof window !== "undefined") {
-            document.cookie = "";
-          }
+          localStorage.removeItem("token");
           navigate("/signin");
         }
       } catch (error) {

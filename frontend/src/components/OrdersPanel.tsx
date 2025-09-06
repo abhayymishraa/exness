@@ -28,11 +28,7 @@ export default function OrdersPanel() {
   const fetchOpenOrders = async () => {
     setIsLoading(true);
     try {
-      const token =
-        document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("Authorization="))
-          ?.split("=")[1] || "";
+      const token = localStorage.getItem("token") || "";
 
       const response = await getopentrades(token);
       setOpenOrders(response?.data.trades || []);
@@ -46,11 +42,7 @@ export default function OrdersPanel() {
   const fetchClosedOrders = async () => {
     setIsLoading(true);
     try {
-      const token =
-        document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("Authorization="))
-          ?.split("=")[1] || "";
+      const token = localStorage.getItem("token") || "";
 
       const response = await getclosedtrades(token);
       setClosedOrders(response.data.trades || []);
@@ -83,11 +75,7 @@ export default function OrdersPanel() {
   const closePosition = async (orderId: string) => {
     try {
       setIsClosingPosition(orderId);
-      const token =
-        document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("Authorization="))
-          ?.split("=")[1] || "";
+      const token = localStorage.getItem("token") || "";
 
       await closetrade(token, orderId);
 

@@ -23,7 +23,7 @@ export async function getKlineData(
       startTime: startTimestamp,
       endTime: endTimestamp,
     },
-  });
+});
 
   if (res.data && Array.isArray(res.data.candles)) {
     res.data.candles = res.data.candles.map((candle: any) => ({
@@ -78,11 +78,7 @@ export async function submitsignin(email: string, pass: string) {
 
 export async function findUserAmount() {
   try {
-    const token =
-      document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("Authorization="))
-        ?.split("=")[1] || "";
+    const token = localStorage.getItem("token");
 
     const res = await axios.get(`${BASE_URL}/user/balance`, {
       headers: {

@@ -40,10 +40,7 @@ export default function Signup() {
   });
 
   useEffect(() => {
-    const loggedin = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("userID="))
-      ?.split("=")[1];
+    const loggedin = localStorage.getItem("userID") !== null;
     console.log("loggedin as ", loggedin);
     if (loggedin) {
       navigate("/signin");
@@ -70,6 +67,7 @@ export default function Signup() {
     const data = await submitsignup(email as string, pass as string);
 
     if (data.userId) {
+      localStorage.setItem("userID", data.userId);
       navigate("/signin");
       setIsSubmitted(false);
     } else {

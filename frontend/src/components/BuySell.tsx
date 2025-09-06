@@ -86,13 +86,9 @@ export default function BuySell({
       setIsSubmitting(true);
       setError("");
 
-      const token =
-        document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("Authorization="))
-          ?.split("=")[1] || "";
+      const token = localStorage.getItem("token") || "";
 
-      const response = await await createTrade({
+      const response = await createTrade({
         symbol,
         activeTab,
         margin,

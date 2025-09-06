@@ -74,6 +74,7 @@ export default function Signin() {
     const data = await submitsignin(email as string, pass as string);
 
     if (data.token) {
+      localStorage.setItem("token", data.token);
       navigate("/trading");
       setIsSubmitted(false);
       setIsLoading(false);
@@ -85,12 +86,7 @@ export default function Signin() {
   };
 
   const handleclick = async () => {
-    document.cookie.split(";").forEach((c) => {
-      document.cookie = c
-        .replace(/^ +/, "")
-        .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
-    });
-
+    localStorage.removeItem("token");
     navigate("/signup");
   };
 

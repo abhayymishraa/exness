@@ -33,7 +33,6 @@ userRouter.post("/signup", (req, res) => {
         usd_balance: toInternalUSD(5000), // decimals 2
       },
     };
-    res.cookie("userID", uuid, getCookieOptions());
     return res.status(200).json({
       userId: uuid,
     });
@@ -62,7 +61,6 @@ userRouter.post("/signin", (req, res) => {
     }
 
     const token = jwt.sign({ userId: uuid }, SECRET);
-    res.cookie("Authorization", token, getCookieOptions());
     return res.status(200).json({
       token: token,
     });
