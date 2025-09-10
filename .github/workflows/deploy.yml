@@ -38,6 +38,10 @@ jobs:
               git clone https://github.com/${{ github.repository }} ~/repo &&
               cd ~/repo &&
               docker compose down -v || true &&
+              docker stop \$(docker ps -aq) || true &&
+              docker rm \$(docker ps -aq) || true &&
+              docker volume prune -f || true &&
+              docker network prune -f || true &&
               docker compose build --no-cache &&
               docker compose up -d
             "
