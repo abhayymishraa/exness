@@ -45,9 +45,3 @@ jobs:
               docker compose build --no-cache &&
               docker compose up -d
             "
-
-      - name: Stop VM (optional)
-        if: always()
-        run: |
-          gcloud compute instances stop ${{ secrets.GCP_VM_NAME }} \
-            --zone=${{ secrets.GCP_VM_ZONE }}
