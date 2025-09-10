@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Signalingmanager } from "../utils/subscription_manager";
-import { Channels, type SYMBOL } from "../utils/constants";
+import { type SYMBOL } from "../utils/constants";
 import { toDisplayPrice } from "../utils/utils";
+import { subscribePrices, type LivePrices } from "../utils/price_store";
 
 export interface Trade {
   buyPrice: number;
@@ -35,26 +35,14 @@ export default function AskBids({ symbol }: { symbol?: SYMBOL }) {
   });
 
   useEffect(() => {
-    const signalingManager = Signalingmanager.getInstance();
-
-    const callback = (trade: Trade) => {
-      setBidsAsks((prev) => ({
-        ...prev,
-        [trade.symbol]: {
-          bids: toDisplayPrice(trade?.buyPrice),
-          asks: toDisplayPrice(trade?.sellPrice),
-          symbol: trade?.symbol,
-        },
-      }));
-    };
-
-    const unwatchFunctions = Object.values(Channels).map((ch) =>
-      signalingManager.watch(ch, callback)
-    );
-
-    return () => {
-      unwatchFunctions.forEach((unwatch) => unwatch());
-    };
+    const unsubscribe = subscribePrices((prices: LivePrices) => {
+      setBidsAsks({
+        BTC: { bids: toDisplayPrice(prices.BTC.ask), asks: toDisplayPrice(prices.BTC.bid), symbol: "BTC" },
+        ETH: { bids: toDisplayPrice(prices.ETH.ask), asks: toDisplayPrice(prices.ETH.bid), symbol: "ETH" },
+        SOL: { bids: toDisplayPrice(prices.SOL.ask), asks: toDisplayPrice(prices.SOL.bid), symbol: "SOL" },
+      });
+    });
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -84,11 +72,11 @@ export default function AskBids({ symbol }: { symbol?: SYMBOL }) {
                 {item.symbol}
                 <span className="text-xs text-white/50 ml-1">USDT</span>
               </th>
-              <td className="py-3 text-right font-mono text-[#EB483F]">
-                {item.asks}
-              </td>
               <td className="py-3 text-right font-mono text-[#158BF9]">
                 {item.bids}
+              </td>
+              <td className="py-3 text-right font-mono text-[#EB483F]">
+                {item.asks}
               </td>
             </tr>
           ))}

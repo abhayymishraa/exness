@@ -3,7 +3,8 @@ import { usermiddleware } from "../middleware";
 import { CLOSEDORDERS, ORDERS, PRICESTORE, USERS } from "../data";
 import { tradeSchema } from "../types/userschema";
 import { v4 } from "uuid";
-import { USD_SCALE } from "../utils/utils";
+import { USD_SCALE, calculatePnlCents } from "../utils/utils";
+import { closeOrder } from "../utils/tradeUtils";
 
 export const tradeRouter = Router();
 
@@ -11,70 +12,68 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
   try {
     const tradeschema = tradeSchema.safeParse(req.body);
     if (!tradeschema.success) {
-      return res.status(411).json({
-        message: "Incorrect inputs",
-      });
+      return res.status(411).json({ message: "Incorrect inputs" });
     }
-    const { asset, type, margin, leverage } = tradeschema.data;
+    let { asset, type, margin, leverage, takeProfit, stopLoss } = tradeschema.data;
 
     //@ts-ignore
     const userid = req.userId;
-
     const user = USERS[userid];
 
     if (!user) {
-      return res.status(411).json({
-        message: "Incorrect inputs",
-      });
-    }
-    const basePrice = PRICESTORE[asset];
-
-    const currentprice =
-      type === "buy"
-        ? basePrice?.ask
-          ? Number(basePrice.ask)
-          : 0
-        : basePrice?.bid
-        ? Number(basePrice.bid)
-        : 0;
-
-    if (user.balance.usd_balance < margin) {
-      return res.status(411).json({
-        message: "Incorrect inputs",
-      });
+      return res.status(411).json({ message: "User not found" });
     }
 
-    if (type === "buy") {
-      user.balance.usd_balance -= margin;
-    } else {
-      user.balance.usd_balance += margin;
+    if (asset && asset.endsWith("USDT")) {
+      asset = asset.replace("USDT", "") as any;
     }
+
+    const basePriceData = PRICESTORE[asset];
+    const openPrice = type === "buy" ? basePriceData?.ask : basePriceData?.bid;
+
+    if (!openPrice || user.balance.usd_balance < margin) {
+      return res
+        .status(411)
+        .json({ message: "Invalid asset or insufficient funds" });
+    }
+
+    user.balance.usd_balance -= margin;
 
     const orderid = v4();
+    // A simpler order object, without the flawed quantity.
+    // Compute liquidation price: when unrealized PnL <= -margin
+    // PnL = ((close - open) / open) * (margin * leverage)
+    // Set liquidation where PnL = -margin -> ((close - open)/open) * leverage = -1
+    // => close = open * (1 - 1/leverage) for long; for short, close = open * (1 + 1/leverage)
+    // Formula for long: close = open * (1 - 1 / leverage)
+// This calculates the price at which the loss equals 100% of the margin.
+    const liquidationPrice = type === "buy" ? Math.floor((openPrice as number) * (1 - 1 / leverage))
+    // Formula for short: close = open * (1 + 1 / leverage)
+    : Math.floor((openPrice as number) * (1 + 1 / leverage));
 
     const order = {
       type,
-      margin, // 2 decimals
+      margin,
       leverage,
       asset,
-      openPrice: currentprice as number,
+      openPrice: openPrice as number,
       timestamp: Date.now(),
+      takeProfit: takeProfit ? Math.round(takeProfit * 10000) : undefined,
+      stopLoss: stopLoss ? Math.round(stopLoss * 10000) : undefined,
+      liquidationPrice,
     };
 
     if (!ORDERS[userid]) {
       ORDERS[userid] = {};
     }
-
     ORDERS[userid][orderid] = order;
 
-    return res.status(200).json({
-      orderId: orderid,
-    });
+    return res.status(200).json({ orderId: orderid });
   } catch (e) {
-    console.log("eror while trade", e);
-    return res.status(411).json({
-      message: "Incorrect inputs",
-    });
+    console.log("error while trade", e);
+    return res
+      .status(500)
+      .json({ message: "Server error during trade creation" });
   }
 });
 
@@ -84,58 +83,17 @@ tradeRouter.post("/close", usermiddleware, (req, res) => {
     //@ts-ignore
     const userid = req.userId;
     if (!ORDERS[userid] || !ORDERS[userid][orderid]) {
-      return res.status(404).json({
-        message: "Order not found",
-      });
+      return res.status(404).json({ message: "Order not found" });
     }
 
-    const order = ORDERS[userid][orderid];
-    const user = USERS[userid];
-
-    const price = PRICESTORE[order.asset];
-    if (!price || !user) {
-      return res.status(411).json({
-        message: "No matched asset found in price",
-      });
-    }
-    // long (buy first)
-    // short (sell first)
-    // agar user ne buy kiya tha ask ke price me to wo bid ke price me wo order close krega
-    // vice versal for sell if user ne sell kiya hai to closekrega wo current price pe jo ki added margin wla hai
-    const closeprice = order.type === "buy" ? price?.bid : price?.ask;
-
-    let pnl = 0;
-    const totalamountwithleveraged = order.margin * order.leverage * USD_SCALE;
-    if (order.type === "buy") {
-      // difference
-      const pricechange = closeprice! - order.openPrice;
-      // () in bracket part we have just calculated the loss/proft percent that happened during trade and usme then we multiply leveragedamount(eposed totoal)
-      // like if profit hua hai to () ye percentage deta hai, but percentage represent kr rha h exposed value pr mtlb exposed me kitna profit hua hai
-      pnl = (pricechange / order.openPrice) * totalamountwithleveraged;
-    } else {
-      const pricechange = order.openPrice - closeprice!;
-      pnl = (pricechange / order.openPrice) * totalamountwithleveraged;
-    }
-    user.balance.usd_balance += order.margin + Math.round(pnl / USD_SCALE);
-
-    if (!CLOSEDORDERS[userid]) CLOSEDORDERS[userid] = {};
-    CLOSEDORDERS[userid][orderid] = {
-      ...order,
-      closePrice: closeprice,
-      pnl: Math.round(pnl / USD_SCALE),
-      closeTimestamp: Date.now(),
-    };
-
-    delete ORDERS[userid][orderid];
+      const pnl = closeOrder(userid, orderid, 'manual');
 
     return res.status(200).json({
-      message: "Positio closed success",
-      pnl: Math.round(pnl / USD_SCALE),
+      message: "Position closed successfully",
+      pnl: pnl,
     });
   } catch (e) {
     console.log("Err", e);
-    return res.status(411).json({
-      message: "Something went down",
-    });
+    return res.status(500).json({ message: "Something went wrong" });
   }
 });

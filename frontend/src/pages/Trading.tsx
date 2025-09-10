@@ -154,8 +154,8 @@ export default function Trading() {
             <div className="w-full h-full md:w-1/4">
               <BuySell
                 symbol={symbol}
-                sellPrice={toDisplayPrice(prices.sellPrice)}
                 buyPrice={toDisplayPrice(prices.buyPrice)}
+                sellPrice={toDisplayPrice(prices.sellPrice)}
               />
             </div>
           </div>

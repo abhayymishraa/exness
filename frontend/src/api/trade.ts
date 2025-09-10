@@ -110,7 +110,7 @@ export async function getopentrades(token: string) {
 
 export async function getclosedtrades(token: string) {
   try {
-    const data = await axios.get(`${BASE_URL}/trades `, {
+    const data = await axios.get(`${BASE_URL}/trades`, {
       headers: {
         Authorization: token,
       },

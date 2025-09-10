@@ -11,5 +11,8 @@ export const tradeSchema = z.object({
   type: z.enum(["buy", "sell"]),
   margin: z.number().positive(),
   leverage: z.union([z.literal(1), z.literal(5), z.literal(10), z.literal(20), z.literal(100)]),
+  // Optional risk params in display price units (e.g. 65000.12)
+  takeProfit: z.number().positive().optional(),
+  stopLoss: z.number().positive().optional(),
 });
 
