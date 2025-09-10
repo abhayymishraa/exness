@@ -34,10 +34,10 @@ jobs:
           gcloud compute ssh ${{ secrets.GCP_VM_NAME }} \
             --zone=${{ secrets.GCP_VM_ZONE }} \
             --command "
-              rm -rf exness &&
-              git clone https://github.com/${{ github.repository }} repo &&
-              cd repo &&
-              docker compose down -v &&
+              rm -rf ~/repo &&
+              git clone https://github.com/${{ github.repository }} ~/repo &&
+              cd ~/repo &&
+              docker compose down -v || true &&
               docker compose build --no-cache &&
               docker compose up -d
             "
