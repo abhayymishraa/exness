@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router";
 import { submitsignup } from "../api/trade";
 import { useEffect, useState } from "react";
-import { FaEnvelope, FaLock, FaUserPlus } from "react-icons/fa";
 
 export default function Signup() {
   const [error, setError] = useState("");
@@ -51,66 +50,67 @@ export default function Signup() {
   };
 
   return (
-    <div className="w-full min-h-screen relative overflow-hidden bg-[#0c1418]">
-      <div className="fixed inset-0 bg-gradient-to-br from-[#0c1418] via-[#14202a] to-[#0c1418]">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(21,139,249,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(21,139,249,0.05)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+    <div className="w-full min-h-screen relative overflow-hidden bg-neutral-950 font-mono">
+      <div className="fixed inset-0 bg-neutral-950">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-neutral-500/10 via-neutral-600/5 to-transparent blur-3xl"></div>
+        <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-gradient-to-bl from-neutral-400/8 via-neutral-500/4 to-transparent blur-3xl"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-gradient-to-tr from-neutral-600/6 via-neutral-400/3 to-transparent blur-3xl"></div>
 
-        <div className="absolute top-20 left-10 w-32 h-32 border border-blue-400/10 rounded-full backdrop-blur-sm bg-white/5 animate-pulse"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 border border-neutral-500/10 backdrop-blur-sm bg-neutral-500/5 animate-pulse"></div>
         <div
-          className="absolute top-40 right-20 w-28 h-28 border border-purple-400/10 rounded-3xl backdrop-blur-sm bg-white/5 animate-pulse"
+          className="absolute top-40 right-20 w-28 h-28 border border-neutral-400/10 backdrop-blur-sm bg-neutral-500/5 animate-pulse"
           style={{ animationDelay: "1s" }}
         ></div>
         <div
-          className="absolute bottom-32 left-1/4 w-24 h-24 border border-cyan-400/10 rounded-2xl backdrop-blur-sm bg-white/5 animate-pulse"
+          className="absolute bottom-32 left-1/4 w-24 h-24 border border-neutral-600/10 backdrop-blur-sm bg-neutral-500/5 animate-pulse"
           style={{ animationDelay: "2s" }}
         ></div>
 
-        <div className="absolute top-1/4 left-1/3 w-[300px] h-[300px] bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/3 w-[400px] h-[400px] bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-full blur-3xl"></div>
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(115,115,115,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(115,115,115,0.05)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
       </div>
 
       <div className="relative z-10 w-full min-h-screen flex justify-center items-center p-4">
         <div className="relative w-full max-w-md">
-          <div className="relative bg-[#141D22]/80 backdrop-blur-xl border border-[#263136] rounded-2xl shadow-2xl overflow-hidden">
+          <div className="relative bg-neutral-900/80 backdrop-blur-xl border border-neutral-600 shadow-2xl overflow-hidden">
             <div className="p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-[#158BF9] flex items-center justify-center mx-auto mb-4">
-                <FaUserPlus className="text-white text-2xl" />
+              <div className="w-16 h-16 bg-neutral-500 flex items-center justify-center mx-auto mb-4">
+                <span className="text-neutral-50 text-2xl">+</span>
               </div>
-              <h1 className="text-3xl font-bold text-[#158BF9] mb-2">
+              <h1 className="text-3xl font-bold text-neutral-50 mb-2">
                 Create Account
               </h1>
-              <p className="text-gray-300">Join EXNESSS today</p>
+              <p className="text-neutral-300">Join Exness today</p>
             </div>
 
-            <form onSubmit={handlesubmit} className="px-8 pb-8 space-y-6">
+            <div className="px-8 pb-8 space-y-6">
               <div className="relative group">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                  <FaEnvelope className="text-gray-400 group-focus-within:text-[#158BF9] transition-colors duration-300" />
+                  <span className="text-neutral-400 group-focus-within:text-neutral-50 transition-colors duration-300">@</span>
                 </div>
                 <input
                   type="email"
                   name="mail"
                   placeholder="Email"
-                  className="w-full pl-10 pr-4 py-3 bg-[#0c1418]/50 border border-[#263136] rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-[#158BF9]/50 focus:bg-[#141D22]/50 transition-all duration-300"
-                  required
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-950/50 border border-neutral-600 text-neutral-50 placeholder-neutral-400 focus:outline-none focus:border-neutral-500 focus:bg-neutral-800/50 transition-all duration-300"
                 />
               </div>
+              <form onSubmit={handlesubmit}>
 
               <div className="relative group">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                  <FaLock className="text-gray-400 group-focus-within:text-[#158BF9] transition-colors duration-300" />
+                  <span className="text-neutral-400 group-focus-within:text-neutral-50 transition-colors duration-300">🔒</span>
                 </div>
                 <input
                   type="password"
                   name="pass"
                   placeholder="Password must be at least 6 characters"
-                  className="w-full pl-10 pr-4 py-3 bg-[#0c1418]/50 border border-[#263136] rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-[#158BF9]/50 focus:bg-[#141D22]/50 transition-all duration-300"
-                  required
-                />
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-950/50 border border-neutral-600 text-neutral-50 placeholder-neutral-400 focus:outline-none focus:border-neutral-500 focus:bg-neutral-800/50 transition-all duration-300"
+                  />
               </div>
 
               {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
                   {error}
                 </div>
               )}
@@ -118,33 +118,34 @@ export default function Signup() {
               <button
                 type="submit"
                 disabled={submitted}
-                className="w-full py-3 bg-[#158BF9] text-white rounded-xl font-semibold hover:bg-blue-600 transform transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
-              >
+                className="w-full py-3 bg-neutral-50 text-neutral-950 font-semibold hover:bg-neutral-200 transform transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
                 {isLoading ? (
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin h-5 w-5 border-b-2 border-neutral-950 mr-2"></div>
                     Creating Account...
                   </div>
                 ) : (
                   <>
-                    <FaUserPlus className="mr-2" />
+                    <span className="mr-2">+</span>
                     Create Account
                   </>
                 )}
               </button>
 
+              </form>
               <div className="text-center">
-                <p className="text-gray-400 text-sm">
+                <p className="text-neutral-400 text-sm">
                   Already have an account?{" "}
-                  <a
-                    href="/signin"
-                    className="text-[#158BF9] hover:text-blue-300 font-medium transition-colors duration-300"
+                  <button
+                    onClick={() => navigate("/signin")}
+                    className="text-neutral-50 hover:text-neutral-300 font-medium transition-colors duration-300"
                   >
                     Sign in
-                  </a>
+                  </button>
                 </p>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
