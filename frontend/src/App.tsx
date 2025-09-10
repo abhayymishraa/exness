@@ -5,14 +5,14 @@ import Signup from "./pages/Signup";
 import Trading from "./pages/Trading";
 import Navbar from "./components/Navbar";
 import "aos/dist/aos.css";
-import Landing from "./pages/Homepage";
+import ExnessLanding from "./pages/Homepage";
 
 function App() {
   return (
     <div className="min-h-screen bg-[#0c1418] text-white">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={<ExnessLanding />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
           <Route

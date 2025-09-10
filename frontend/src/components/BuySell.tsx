@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import type { SYMBOL } from "../utils/constants";
 import { createTrade, findUserAmount } from "../api/trade";
 import { getAssetDetails } from "../api/trade";
 import type { Asset } from "../types/asset";
-import { toDisplayPriceUSD } from "../utils/utils";
+import {
+  calculatePnlCents,
+  toDisplayPriceUSD,
+  toInternalPrice,
+} from "../utils/utils";
 
 export default function BuySell({
   buyPrice,
@@ -68,6 +72,48 @@ export default function BuySell({
       clearInterval(assetsIntervalId);
     };
   }, [symbol]);
+
+  const estimatedTpPnlInCents = useMemo(() => {
+    if (!tpEnabled || !tpPrice || Number(tpPrice) <= 0) return 0;
+
+    // 1. Convert all inputs to the correct scaled-integer format
+    const openPriceForCalc =
+      activeTab === "buy"
+        ? toInternalPrice(buyPrice)
+        : toInternalPrice(sellPrice);
+    const closePriceForCalc = toInternalPrice(Number(tpPrice));
+    const marginForCalc = margin * 100; // Convert dollar margin to cents
+
+    // 2. Call the exact same robust function used everywhere else
+    return calculatePnlCents({
+      side: activeTab,
+      openPrice: openPriceForCalc,
+      closePrice: closePriceForCalc,
+      marginCents: marginForCalc,
+      leverage: leverage,
+    });
+  }, [tpEnabled, tpPrice, activeTab, buyPrice, sellPrice, margin, leverage]);
+
+  const estimatedSlPnlInCents = useMemo(() => {
+    if (!slEnabled || !slPrice || Number(slPrice) <= 0) return 0;
+
+    // 1. Convert all inputs to the correct scaled-integer format
+    const openPriceForCalc =
+      activeTab === "buy"
+        ? toInternalPrice(buyPrice)
+        : toInternalPrice(sellPrice);
+    const closePriceForCalc = toInternalPrice(Number(slPrice));
+    const marginForCalc = margin * 100; // Convert dollar margin to cents
+
+    // 2. Call the robust P&L function
+    return calculatePnlCents({
+      side: activeTab,
+      openPrice: openPriceForCalc,
+      closePrice: closePriceForCalc,
+      marginCents: marginForCalc,
+      leverage: leverage,
+    });
+  }, [slEnabled, slPrice, activeTab, buyPrice, sellPrice, margin, leverage]);
 
   const handleSubmitTrade = async () => {
     if (margin <= 0) {
@@ -197,7 +243,7 @@ export default function BuySell({
             </div>
             <div className="mt-1 text-base font-semibold text-[#EB483F] flex items-center">
               <span className="text-xs mr-1">$</span>
-              {buyPrice}
+              {sellPrice}
             </div>
             <div className="absolute w-1 h-full bg-[#EB483F]/40 left-0 top-0"></div>
           </div>
@@ -210,7 +256,7 @@ export default function BuySell({
             </div>
             <div className="mt-1 text-base font-semibold text-[#158BF9] flex items-center">
               <span className="text-xs mr-1">$</span>
-              {sellPrice}
+              {buyPrice}
             </div>
             <div className="absolute w-1 h-full bg-[#158BF9]/40 left-0 top-0"></div>
           </div>
@@ -491,20 +537,29 @@ export default function BuySell({
             </div>
 
             {tpEnabled && (
-              <div className="mt-1.5 flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <div className="text-[10px] text-white/50">Est. Profit:</div>
+              <div className="mt-1.5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <div className="text-[10px] text-white/50">
+                      Est. Profit:
+                    </div>
+                  </div>
+                  <div
+                    className={`text-[10px] px-1.5 py-0.5 rounded ${
+                      estimatedTpPnlInCents > 0
+                        ? "text-green-400 bg-green-500/10"
+                        : "text-red-400 bg-red-500/10"
+                    }`}
+                  >
+                    {estimatedTpPnlInCents >= 0 ? "+$" : "-$"}
+                    {toDisplayPriceUSD(Math.abs(estimatedTpPnlInCents)).toFixed(
+                      2
+                    )}
+                  </div>
                 </div>
-                <div className="text-[10px] text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">
-                  +$
-                  {tpPrice
-                    ? (
-                        (Number(tpPrice) -
-                          (activeTab === "buy" ? sellPrice : buyPrice)) *
-                        margin *
-                        leverage
-                      ).toFixed(2)
-                    : "0.00"}
+                <div className="text-[10px] text-white/40">
+                  Target: ${tpPrice} | Current: $
+                  {activeTab === "buy" ? buyPrice : sellPrice}
                 </div>
               </div>
             )}
@@ -574,22 +629,28 @@ export default function BuySell({
             </div>
 
             {slEnabled && (
-              <div className="mt-1.5 flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <div className="text-[10px] text-white/50">Est. Loss:</div>
+              <div className="mt-1.5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <div className="text-[10px] text-white/50">Est. Loss:</div>
+                  </div>
+                  <div
+                    className={`text-[10px] px-1.5 py-0.5 rounded ${
+                      estimatedSlPnlInCents < 0
+                        ? "text-red-400 bg-red-500/10"
+                        : "text-green-400 bg-green-500/10"
+                    }`}
+                  >
+                    {/* Always show loss as negative, but use abs for the number */}
+                    {estimatedSlPnlInCents > 0 ? "+$" : "-$"}
+                    {toDisplayPriceUSD(Math.abs(estimatedSlPnlInCents)).toFixed(
+                      2
+                    )}
+                  </div>
                 </div>
-                <div className="text-[10px] text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">
-                  -$
-                  {slPrice
-                    ? (
-                        Math.abs(
-                          Number(slPrice) -
-                            (activeTab === "buy" ? sellPrice : buyPrice)
-                        ) *
-                        margin *
-                        leverage
-                      ).toFixed(2)
-                    : "0.00"}
+                <div className="text-[10px] text-white/40">
+                  Stop: ${slPrice} | Current: $
+                  {activeTab === "buy" ? buyPrice : sellPrice}
                 </div>
               </div>
             )}

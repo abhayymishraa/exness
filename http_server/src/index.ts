@@ -3,11 +3,13 @@ import cors from "cors";
 import { Client } from "pg";
 import { userRouter } from "./router/user";
 import { RedisManager } from "./utils/redisClient";
-import { PRICESTORE } from "./data";
+import { CLOSEDORDERS, ORDERS, PRICESTORE, USERS } from "./data";
+import { calculatePnlCents } from "./utils/utils";
 import { candelrouter } from "./router/candles";
 import { tradesRouter } from "./router/trades";
 import { assetrouter } from "./router/asset";
 import { tradeRouter } from "./router/trade";
+import { checkOpenPositions } from "./service/orderschecker";
 
 const port = 5000;
 
@@ -21,10 +23,8 @@ export const pgClient = new Client({
 
 await pgClient.connect();
 
-
-
 export const app = express();
-app.use(express.json())
+app.use(express.json());
 app.use(
   cors({
     origin: ["http://localhost:3000", "https://exness.elevenai.xyz"],
@@ -44,11 +44,12 @@ async function startpriceuddate() {
     await redis.subscribe(asset, (msg: string) => {
       const data = JSON.parse(msg);
       PRICESTORE[asset] = { ask: data.sellPrice, bid: data.buyPrice };
+      checkOpenPositions(asset, { ask: data.sellPrice, bid: data.buyPrice });
     });
   });
   setInterval(() => {
-    console.log(PRICESTORE);
-  }, 20_000);
+    console.log("PRICESTORE", PRICESTORE);
+  }, 20000);
 }
 
 startpriceuddate();

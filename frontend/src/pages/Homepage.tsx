@@ -1,253 +1,429 @@
-import {
-  FaRocket,
-  FaShieldAlt,
-  FaUserPlus,
-  FaSignInAlt,
-  FaBolt,
-  FaGem,
-  FaChartLine,
-} from "react-icons/fa";
-
-export default function Landing() {
+export default function PersonalDashboard() {
   return (
-    <div className="w-full min-h-screen relative overflow-hidden bg-[#0c1418]">
-      <div className="fixed inset-0 bg-[#0c1418]">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(21,139,249,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(21,139,249,0.05)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-        <div className="absolute top-20 left-10 w-32 h-32 border border-blue-400/10 rounded-full backdrop-blur-sm bg-white/5 animate-pulse"></div>
-        <div
-          className="absolute top-40 right-20 w-28 h-28 border border-purple-400/10 rounded-3xl backdrop-blur-sm bg-white/5 animate-pulse"
-          style={{ animationDelay: "1s" }}
-        ></div>
-        <div
-          className="absolute bottom-32 left-1/4 w-24 h-24 border border-cyan-400/10 rounded-2xl backdrop-blur-sm bg-white/5 animate-pulse"
-          style={{ animationDelay: "2s" }}
-        ></div>
-        <div
-          className="absolute top-1/2 right-1/4 w-20 h-20 border border-pink-400/10 rounded-lg backdrop-blur-sm bg-white/5 animate-pulse"
-          style={{ animationDelay: "3s" }}
-        ></div>
+    <div className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 bg-black">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-purple-500/20 via-blue-500/10 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-gradient-to-bl from-purple-600/15 via-blue-600/8 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-gradient-to-tr from-blue-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl"></div>
 
-        <div className="absolute top-1/4 left-1/3 w-[400px] h-[400px] bg-[#158BF9]/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/3 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-cyan-500/8 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 w-full h-full">
+          <div className="absolute top-1/4 right-1/4 w-1 h-96 bg-gradient-to-b from-purple-500 via-blue-500 to-transparent rotate-45 blur-sm"></div>
+          <div className="absolute top-1/3 right-1/3 w-0.5 h-80 bg-gradient-to-b from-purple-400 via-blue-400 to-transparent rotate-45 blur-sm"></div>
+        </div>
       </div>
 
-      <div className="relative z-10 w-full min-h-screen flex flex-col">
-        <nav className="p-6 animate-fadeIn">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-[#158BF9] flex items-center justify-center">
-                <FaGem className="text-white text-xl" />
-              </div>
-              <h1 className="text-2xl font-bold text-[#158BF9]">EXNESSS</h1>
+      {/* Navigation */}
+      <nav className="relative z-10 flex items-center justify-between p-6 max-w-7xl mx-auto">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">E</span>
+          </div>
+          <span className="text-white font-bold text-xl">Exness</span>
+        </div>
+
+        <div className="hidden md:flex items-center space-x-8">
+          <a
+            href="#"
+            className="text-gray-300 hover:text-white transition-colors"
+          >
+            Home
+          </a>
+          <a
+            href="/trading"
+            className="text-gray-300 hover:text-white transition-colors"
+          >
+            Trading
+          </a>
+          <a
+            href="/signin"
+            className="text-gray-300 hover:text-white transition-colors"
+          >
+            Login
+          </a>
+        </div>
+
+        <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors">
+          DEMO
+        </button>
+      </nav>
+
+      {/* Hero Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="flex items-center mb-6">
+              <span className="text-gray-400 text-sm">
+                Trading platform reimagined
+              </span>
             </div>
-            <div className="flex items-center space-x-4">
-              <a
-                href="/signin"
-                className="px-6 py-2 text-gray-300 hover:text-white transition-colors duration-300 font-medium"
+
+            <h1 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              <span className="text-white">Trading</span>
+              <br />
+              <span className="text-white">Dashboard</span>
+            </h1>
+
+            <p className="text-gray-300 text-lg mb-8 max-w-lg">
+              Experience next-generation trading with our comprehensive Exness
+              platform. Real-time market data, advanced analytics, and intuitive
+              portfolio management in one place.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+              <button
+                onClick={() => (window.location.href = "/trading")}
+                className="bg-white text-black px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
               >
-                Sign In
-              </a>
-              <a
-                href="/signup"
-                className="px-6 py-3 bg-[#158BF9] text-white rounded-xl hover:bg-blue-600 transform transition-all duration-300 font-medium"
-              >
-                Get Started
-              </a>
+                Start Trading →
+              </button>
+              <button className="border border-purple-500 text-purple-500 px-8 py-3 rounded-lg font-semibold hover:bg-purple-500 hover:text-white transition-colors">
+                ▶ View Demo
+              </button>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="text-white font-semibold">Trusted Platform</span>
+              <div className="flex space-x-1">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-4 h-4 bg-green-500 rounded-sm"
+                  ></div>
+                ))}
+              </div>
+              <span className="text-gray-400">Secure trading</span>
             </div>
           </div>
-        </nav>
 
-        {/* Hero Section */}
-        <div className="flex-1 flex items-center justify-center px-6 py-16">
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className="text-left">
-              <div className="flex items-center mb-6">
-                <div className="w-16 h-16 rounded-2xl bg-[#158BF9] flex items-center justify-center mr-4">
-                  <FaRocket className="text-white text-2xl" />
+          {/* Dashboard Preview */}
+          <div className="relative">
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-xs">FX</span>
+                  </div>
+                  <span className="text-white font-semibold">
+                    Trading Overview
+                  </span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center animate-bounce">
-                  <span className="text-white text-xs font-bold">🚀</span>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-white">$12,450</div>
+                  <div className="text-green-400 text-sm">+2.4% today</div>
                 </div>
               </div>
 
-              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-                <span className="text-[#158BF9]">Welcome to the</span>
-                <br />
-                <span className="text-white">Future of Trading</span>
-              </h1>
+              {/* Trading Cards */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-6 h-6 bg-blue-500 rounded-full"></div>
+                    <span className="text-gray-300 text-sm">ETH/USD</span>
+                  </div>
+                  <div className="text-white font-semibold">1.0875</div>
+                  <div className="text-green-400 text-xs">+0.12%</div>
+                </div>
 
-              <p className="text-xl text-gray-300 mb-8 max-w-2xl leading-relaxed">
-                Experience next-generation trading with cutting-edge technology,
-                advanced analytics, and seamless user experience designed for
-                modern traders.
-              </p>
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-6 h-6 bg-yellow-500 rounded-full"></div>
+                    <span className="text-gray-300 text-sm">BTC/USD</span>
+                  </div>
+                  <div className="text-white font-semibold">1.2654</div>
+                  <div className="text-red-400 text-xs">-0.08%</div>
+                </div>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6 mb-12">
-                <a
-                  href="/signup"
-                  className="group px-8 py-4 bg-[#158BF9] text-white rounded-2xl text-lg font-semibold hover:bg-blue-600 transform transition-all duration-300 flex items-center"
-                >
-                  <FaUserPlus className="mr-3" />
-                  Start Trading Now
-                </a>
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-6 h-6 bg-purple-500 rounded-full"></div>
+                    <span className="text-gray-300 text-sm">SOL/USD</span>
+                  </div>
+                  <div className="text-white font-semibold">$2,045</div>
+                  <div className="text-green-400 text-xs">+0.34%</div>
+                </div>
+              </div>
 
-                <a
-                  href="/signin"
-                  className="px-8 py-4 bg-[#141D22]/80 backdrop-blur-sm border border-[#263136] text-white rounded-2xl text-lg font-semibold hover:bg-[#141D22] transition-all duration-300 flex items-center"
-                >
-                  <FaSignInAlt className="mr-3" />
-                  Sign In
-                </a>
+              <button
+                onClick={() => (window.location.href = "/trading")}
+                className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg font-semibold transition-colors"
+              >
+                Open Trade
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center">
+          <div>
+            <div className="text-4xl font-bold text-purple-500 mb-2">500+</div>
+            <div className="text-gray-400">Trading Instruments</div>
+          </div>
+          <div>
+            <div className="text-4xl font-bold text-purple-500 mb-2">24/7</div>
+            <div className="text-gray-400">Market Access</div>
+          </div>
+          <div>
+            <div className="text-4xl font-bold text-purple-500 mb-2">0.1s</div>
+            <div className="text-gray-400">Execution Speed</div>
+          </div>
+          <div>
+            <div className="text-4xl font-bold text-purple-500 mb-2">$1M+</div>
+            <div className="text-gray-400">Daily Volume</div>
+          </div>
+          <div>
+            <div className="text-4xl font-bold text-purple-500 mb-2">99.9%</div>
+            <div className="text-gray-400">Uptime</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Trusted By Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
+        <div className="text-center mb-12">
+          <p className="text-gray-400">Powered by professional tools</p>
+        </div>
+
+        <div className="flex justify-center items-center space-x-12 opacity-50">
+          <div className="text-gray-500 font-bold text-xl">MT4</div>
+          <div className="text-gray-500 font-bold text-xl">MT5</div>
+          <div className="text-gray-500 font-bold text-xl">TradingView</div>
+          <div className="text-gray-500 font-bold text-xl">WebTerminal</div>
+          <div className="text-gray-500 font-bold text-xl">Mobile App</div>
+        </div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">
+            Our Exness Platform Handles
+            <br />
+            Millions of Trades Daily
+          </h2>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8 mb-16">
+          {/* Real-time Market Data */}
+          <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm border border-gray-700 rounded-2xl p-8">
+            <h3 className="text-2xl font-bold text-white mb-4">
+              Real-time Market Data
+            </h3>
+            <p className="text-gray-300 mb-6">
+              Stay ahead with lightning-fast market updates, live charts, and
+              instant price feeds from global financial markets.
+            </p>
+
+            <div className="bg-black/50 rounded-lg p-4 mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full"></div>
+                  <span className="text-white text-sm">EUR/USD Live Chart</span>
+                </div>
+                <span className="text-green-400 text-sm">1.0875 +0.12%</span>
+              </div>
+
+              <div className="h-32 bg-gradient-to-t from-blue-500/20 to-transparent rounded border-b border-blue-500/30 mb-4 relative">
+                <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-r from-blue-500/10 via-blue-400/20 to-blue-500/10"></div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2 text-xs">
+                <div className="text-center">
+                  <div className="text-gray-400">Spread</div>
+                  <div className="text-white">0.6 pips</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-gray-400">Volume</div>
+                  <div className="text-white">1.2M</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-gray-400">High</div>
+                  <div className="text-white">1.0892</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-gray-400">Low</div>
+                  <div className="text-white">1.0843</div>
+                </div>
               </div>
             </div>
+          </div>
+          {/* Performance Analytics */}
+          <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm border border-gray-700 rounded-2xl p-8">
+            <h3 className="text-2xl font-bold text-white mb-4">
+              Performance Analytics
+            </h3>
+            <p className="text-gray-300 mb-6">
+              Track your trading performance with comprehensive analytics and
+              detailed reporting tools.
+            </p>
 
-            <div className="relative h-[600px] lg:h-[700px] overflow-hidden">
-              <div className="absolute inset-0 bg-[#158BF9]/5 rounded-3xl backdrop-blur-sm border border-white/5"></div>
-
-              <div className="h-full w-full relative p-8 flex flex-col justify-center items-center">
-                <div className="relative mb-8">
-                  <div className="w-32 h-32 rounded-full bg-[#158BF9] flex items-center justify-center relative animate-pulse">
-                    <FaChartLine className="text-white text-4xl" />
-
-                    <div
-                      className="absolute inset-0 animate-spin"
-                      style={{ animationDuration: "20s" }}
-                    >
-                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">$</span>
-                      </div>
-                    </div>
-                    <div
-                      className="absolute inset-0 animate-spin"
-                      style={{
-                        animationDuration: "15s",
-                        animationDirection: "reverse",
-                      }}
-                    >
-                      <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">₿</span>
-                      </div>
-                    </div>
-                    <div
-                      className="absolute inset-0 animate-spin"
-                      style={{ animationDuration: "25s" }}
-                    >
-                      <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">€</span>
-                      </div>
-                    </div>
-                    <div
-                      className="absolute inset-0 animate-spin"
-                      style={{
-                        animationDuration: "18s",
-                        animationDirection: "reverse",
-                      }}
-                    >
-                      <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">£</span>
-                      </div>
-                    </div>
-                  </div>
+            <div className="bg-black/50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full"></div>
+                  <span className="text-white text-sm">
+                    Monthly Performance
+                  </span>
                 </div>
-
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                  <div className="bg-[#141D22]/60 backdrop-blur-sm border border-[#263136] rounded-xl p-4 text-center">
-                    <div className="text-green-400 text-xl font-bold mb-1">
-                      +24.5%
-                    </div>
-                    <div className="text-gray-400 text-sm">
-                      Portfolio Growth
-                    </div>
-                  </div>
-                  <div className="bg-[#141D22]/60 backdrop-blur-sm border border-[#263136] rounded-xl p-4 text-center">
-                    <div className="text-blue-400 text-xl font-bold mb-1">
-                      $127K
-                    </div>
-                    <div className="text-gray-400 text-sm">Total Volume</div>
-                  </div>
+                <div className="text-green-400 text-sm">
+                  Jan Feb Mar Apr May
                 </div>
+              </div>
 
-                <div className="flex justify-center space-x-4">
-                  <div className="w-16 h-16 rounded-xl bg-green-500/20 flex items-center justify-center border border-green-500/20 hover:scale-110 transition-transform duration-300">
-                    <FaShieldAlt className="text-green-400 text-xl" />
-                  </div>
-                  <div className="w-16 h-16 rounded-xl bg-[#158BF9]/20 flex items-center justify-center border border-blue-500/20 hover:scale-110 transition-transform duration-300">
-                    <FaBolt className="text-[#158BF9] text-xl" />
-                  </div>
-                  <div className="w-16 h-16 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/20 hover:scale-110 transition-transform duration-300">
-                    <FaGem className="text-purple-400 text-xl" />
-                  </div>
+              <div className="h-40 relative bg-gradient-to-t from-purple-500/10 to-transparent">
+                <div className="absolute inset-0 flex items-end justify-around">
+                  {[...Array(12)].map((_, i) => (
+                    <div key={i} className="flex flex-col items-center">
+                      <div
+                        className={`w-2 ${
+                          Math.random() > 0.3 ? "bg-purple-500" : "bg-gray-600"
+                        }`}
+                        style={{ height: `${Math.random() * 80 + 20}px` }}
+                      ></div>
+                    </div>
+                  ))}
                 </div>
+              </div>
 
-                <div className="mt-8 text-center">
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    Advanced Trading Platform
-                  </h3>
-                  <p className="text-gray-400">
-                    Real-time data • AI-powered insights • Secure transactions
-                  </p>
-                </div>
+              <div className="flex justify-between text-xs text-gray-400 mt-2">
+                <span>Jan</span>
+                <span>Mar</span>
+                <span>May</span>
+                <span>Dec</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="py-20 px-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-white mb-4">
-                Why Choose <span className="text-[#158BF9]">EXNESSS</span>
-              </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                Discover the powerful features that make our platform the
-                preferred choice for traders worldwide
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Trading Instruments */}
+        </div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center mb-4">
+            <span className="text-gray-400 text-sm">Trading Platform</span>
+            <div className="ml-4 w-8 h-4 bg-gray-600 rounded-full flex items-center px-1">
+              <div className="w-3 h-3 bg-white rounded-full"></div>
+            </div>
+          </div>
+          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-8">
+            Built with Professional Trading Technology
+          </h2>
+        </div>
+
+        <div className="flex flex-wrap justify-center items-center gap-6">
+          <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg px-4 py-2">
+            <div className="w-6 h-4 bg-blue-500 rounded-sm"></div>
+            <span className="text-white text-sm">MetaTrader 4</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg px-4 py-2">
+            <div className="w-6 h-4 bg-cyan-500 rounded-sm"></div>
+            <span className="text-white text-sm">MetaTrader 5</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg px-4 py-2">
+            <div className="w-6 h-4 bg-yellow-500 rounded-sm"></div>
+            <span className="text-white text-sm">TradingView</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg px-4 py-2">
+            <div className="w-6 h-4 bg-green-500 rounded-sm"></div>
+            <span className="text-white text-sm">WebTerminal</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg px-4 py-2">
+            <div className="w-6 h-4 bg-red-500 rounded-sm"></div>
+            <span className="text-white text-sm">Mobile Apps</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg px-4 py-2">
+            <div className="w-6 h-4 bg-purple-500 rounded-sm"></div>
+            <span className="text-white text-sm">API Trading</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg px-4 py-2">
+            <div className="w-6 h-4 bg-orange-500 rounded-sm"></div>
+            <span className="text-white text-sm">Copy Trading</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg px-4 py-2">
+            <div className="w-6 h-4 bg-gray-700 rounded-sm"></div>
+            <span className="text-white text-sm">VPS Hosting</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Why This Project Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+        <div className="mb-16">
+          <h2 className="text-4xl font-bold text-white mb-4">
+            Why Choose Exness?
+          </h2>
+          <p className="text-gray-400 max-w-2xl">
+            Our Exness platform represents the next generation of online trading
+            with cutting-edge technology and user-focused design.
+          </p>
+        </div>
+
+        <div className="space-y-12">
+          <div className="flex items-start space-x-6">
+            <div className="flex-shrink-0 w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold">01</span>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-4">
+                Ultra-Fast Execution
+              </h3>
+              <p className="text-gray-400 max-w-2xl">
+                Experience lightning-fast trade execution with our advanced
+                technology infrastructure. Orders are processed in milliseconds
+                with minimal slippage.
               </p>
             </div>
+          </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  icon: FaShieldAlt,
-                  title: "Secure Trading",
-                  description:
-                    "Bank-level security with advanced encryption and multi-factor authentication to protect your assets",
-                  color: "bg-green-500",
-                },
-                {
-                  icon: FaBolt,
-                  title: "Lightning Fast",
-                  description:
-                    "Execute trades in milliseconds with our optimized trading infrastructure and real-time data feeds",
-                  color: "bg-[#158BF9]",
-                },
-                {
-                  icon: FaGem,
-                  title: "Premium Features",
-                  description:
-                    "Advanced analytics, AI insights, and professional trading tools to maximize your trading potential",
-                  color: "bg-purple-500",
-                },
-              ].map((feature, index) => (
-                <div
-                  key={index}
-                  className="bg-[#141D22]/80 backdrop-blur-xl border border-[#263136] rounded-2xl p-6 hover:bg-[#141D22] transition-all duration-300 group hover:scale-105 transform"
-                >
-                  <div
-                    className={`w-16 h-16 rounded-2xl ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <feature.icon className="text-2xl text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
+          <div className="flex items-start space-x-6">
+            <div className="flex-shrink-0 w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold">02</span>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-4">
+                Comprehensive Market Access
+              </h3>
+              <p className="text-gray-400 max-w-2xl">
+                Trade across multiple asset classes including forex,
+                commodities, indices, and cryptocurrencies. Over 500 instruments
+                available 24/7.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start space-x-6">
+            <div className="flex-shrink-0 w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold">03</span>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-4">
+                Advanced Analytics
+              </h3>
+              <p className="text-gray-400 max-w-2xl">
+                Make informed decisions with our comprehensive analytics suite,
+                real-time charts, and professional-grade trading tools powered
+                by TradingView.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start space-x-6">
+            <div className="flex-shrink-0 w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold">04</span>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-4">
+                Security & Reliability
+              </h3>
+              <p className="text-gray-400 max-w-2xl">
+                Your funds and data are protected with bank-grade security
+                measures, regulated operations, and 99.9% uptime guarantee for
+                uninterrupted trading.
+              </p>
             </div>
           </div>
         </div>

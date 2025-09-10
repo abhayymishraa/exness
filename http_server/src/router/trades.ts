@@ -19,7 +19,11 @@ tradesRouter.get("/open", usermiddleware, (req, res) => {
       type: order.type,
       margin: order.margin,
       leverage: order.leverage,
+      asset: order.asset,
       openPrice: order.openPrice,
+      takeProfit: order.takeProfit,
+      stopLoss: order.stopLoss,
+      liquidationPrice: order.liquidationPrice,
     })
   );
 

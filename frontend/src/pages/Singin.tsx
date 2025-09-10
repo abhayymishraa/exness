@@ -106,7 +106,7 @@ export default function Signin() {
                 <input
                   type="password"
                   name="pass"
-                  placeholder="Password"
+                  placeholder="Enter Password"
                   className="w-full pl-10 pr-4 py-3 bg-[#0c1418]/50 border border-[#263136] rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-[#158BF9]/50 focus:bg-[#141D22]/50 transition-all duration-300"
                   required
                 />

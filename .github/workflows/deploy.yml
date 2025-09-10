@@ -1,0 +1,48 @@
+name: Deploy to GCP VM
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main  
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT }}
+
+      - name: Start VM (if stopped)
+        run: |
+          gcloud compute instances start ${{ secrets.GCP_VM_NAME }} \
+            --zone=${{ secrets.GCP_VM_ZONE }}
+
+      - name: Run commands on VM
+        run: |
+          gcloud compute ssh ${{ secrets.GCP_VM_NAME }} \
+            --zone=${{ secrets.GCP_VM_ZONE }} \
+            --command "
+              rm -rf exness &&
+              git clone https://github.com/${{ github.repository }} repo &&
+              cd repo &&
+              docker compose build --no-cache &&
+              docker compose up -d
+            "
+
+      - name: Stop VM (optional)
+        if: always()
+        run: |
+          gcloud compute instances stop ${{ secrets.GCP_VM_NAME }} \
+            --zone=${{ secrets.GCP_VM_ZONE }}
