@@ -12,9 +12,9 @@ import { toDisplayPrice } from "../utils/utils";
 export default function Trading() {
   const [duration, setDuration] = useState<Duration>(Duration.candles_1m);
   const [symbol, setSymbol] = useState<SYMBOL>(Channels.BTCUSDT);
-  const [prices, setPrices] = useState({ buyPrice: 0, sellPrice: 0 });
+  const [prices, setPrices] = useState({ askPrice: 0, bidPrice: 0 });
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     async function checkdata() {
       try {
@@ -164,8 +164,8 @@ export default function Trading() {
             <div className="w-full h-full md:w-1/4">
               <BuySell
                 symbol={symbol}
-                buyPrice={toDisplayPrice(prices.buyPrice)}
-                sellPrice={toDisplayPrice(prices.sellPrice)}
+                askPrice={toDisplayPrice(prices.askPrice)}
+                bidPrice={toDisplayPrice(prices.bidPrice)}
               />
             </div>
           </div>

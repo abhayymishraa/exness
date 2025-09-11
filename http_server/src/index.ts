@@ -43,8 +43,8 @@ async function startpriceuddate() {
   ["BTC", "ETH", "SOL"].forEach(async (asset) => {
     await redis.subscribe(asset, (msg: string) => {
       const data = JSON.parse(msg);
-      PRICESTORE[asset] = { ask: data.sellPrice, bid: data.buyPrice };
-      checkOpenPositions(asset, { ask: data.sellPrice, bid: data.buyPrice });
+      PRICESTORE[asset] = { ask: data.askPrice, bid: data.bidPrice };
+      checkOpenPositions(asset, { ask: data.askPrice, bid: data.bidPrice });
     });
   });
   setInterval(() => {

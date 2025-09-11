@@ -23,8 +23,8 @@ export function pushToRedis(
     symbolmap[type],
     JSON.stringify({
       symbol: symbolmap[type],
-      buyPrice: ask,
-      sellPrice: bid,
+      askPrice: ask,
+      bidPrice: bid,
       decimals: 4,
       time: Math.floor(new Date(time).getTime() / 1000),
     }),

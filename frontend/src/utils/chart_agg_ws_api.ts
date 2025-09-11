@@ -5,8 +5,8 @@ import { toDisplayPrice } from "./utils";
 
 export interface RealtimeUpdate {
   symbol: SYMBOL;
-  buyPrice: number;
-  sellPrice: number;
+  bidPrice: number;
+  askPrice: number;
   time: number;
 }
 
@@ -37,7 +37,8 @@ export function processRealupdate(
   const k = key(trade.symbol, duration);
   let lastCandle = lastCandles[k];
 
-  const price = toDisplayPrice(trade.sellPrice);
+  // Using askPrice (previously sellPrice) for candle price source
+  const price = toDisplayPrice(trade.bidPrice);
   const bucketSize = getbucketsize(duration);
   const currentbucket = (Math.floor(trade.time / bucketSize) *
     bucketSize) as UTCTimestamp;

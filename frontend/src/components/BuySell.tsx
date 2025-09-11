@@ -13,12 +13,12 @@ import {
 } from "../utils/utils";
 
 export default function BuySell({
-  buyPrice,
-  sellPrice,
+  askPrice,
+  bidPrice,
   symbol,
 }: {
-  buyPrice: number;
-  sellPrice: number;
+  askPrice: number;
+  bidPrice: number;
   symbol: SYMBOL;
 }) {
   const [orderType, setOrderType] = useState<"market" | "pending">("market");
@@ -79,8 +79,8 @@ export default function BuySell({
     // 1. Convert all inputs to the correct scaled-integer format
     const openPriceForCalc =
       activeTab === "buy"
-        ? toInternalPrice(buyPrice)
-        : toInternalPrice(sellPrice);
+        ? toInternalPrice(askPrice)
+        : toInternalPrice(bidPrice);
     const closePriceForCalc = toInternalPrice(Number(tpPrice));
     const marginForCalc = margin * 100; // Convert dollar margin to cents
 
@@ -92,7 +92,7 @@ export default function BuySell({
       marginCents: marginForCalc,
       leverage: leverage,
     });
-  }, [tpEnabled, tpPrice, activeTab, buyPrice, sellPrice, margin, leverage]);
+  }, [tpEnabled, tpPrice, activeTab, askPrice, bidPrice, margin, leverage]);
 
   const estimatedSlPnlInCents = useMemo(() => {
     if (!slEnabled || !slPrice || Number(slPrice) <= 0) return 0;
@@ -100,8 +100,8 @@ export default function BuySell({
     // 1. Convert all inputs to the correct scaled-integer format
     const openPriceForCalc =
       activeTab === "buy"
-        ? toInternalPrice(buyPrice)
-        : toInternalPrice(sellPrice);
+        ? toInternalPrice(askPrice)
+        : toInternalPrice(bidPrice);
     const closePriceForCalc = toInternalPrice(Number(slPrice));
     const marginForCalc = margin * 100; // Convert dollar margin to cents
 
@@ -113,7 +113,7 @@ export default function BuySell({
       marginCents: marginForCalc,
       leverage: leverage,
     });
-  }, [slEnabled, slPrice, activeTab, buyPrice, sellPrice, margin, leverage]);
+  }, [slEnabled, slPrice, activeTab, askPrice, bidPrice, margin, leverage]);
 
   const handleSubmitTrade = async () => {
     if (margin <= 0) {
@@ -222,7 +222,9 @@ export default function BuySell({
                 </div>
               </div>
             ) : (
-              <div className="text-sm font-semibold text-neutral-50">{symbol}</div>
+              <div className="text-sm font-semibold text-neutral-50">
+                {symbol}
+              </div>
             )}
             <div className="text-xs ml-auto bg-neutral-800/60 backdrop-blur-sm px-3 py-2 rounded-md border border-neutral-600">
               <span className="text-neutral-300">Balance:</span>
@@ -243,7 +245,7 @@ export default function BuySell({
             </div>
             <div className="mt-2 text-lg font-semibold text-[#EB483F] flex items-center">
               <span className="text-sm mr-1">$</span>
-              {sellPrice}
+              {bidPrice}
             </div>
             <div className="absolute w-1 h-full bg-[#EB483F]/40 left-0 top-0"></div>
           </div>
@@ -256,7 +258,7 @@ export default function BuySell({
             </div>
             <div className="mt-2 text-lg font-semibold text-[#158BF9] flex items-center">
               <span className="text-sm mr-1">$</span>
-              {buyPrice}
+              {askPrice}
             </div>
             <div className="absolute w-1 h-full bg-[#158BF9]/40 left-0 top-0"></div>
           </div>
@@ -559,7 +561,7 @@ export default function BuySell({
                 </div>
                 <div className="text-[10px] text-white/40">
                   Target: ${tpPrice} | Current: $
-                  {activeTab === "buy" ? buyPrice : sellPrice}
+                  {activeTab === "buy" ? askPrice : bidPrice}
                 </div>
               </div>
             )}
@@ -650,7 +652,7 @@ export default function BuySell({
                 </div>
                 <div className="text-[10px] text-white/40">
                   Stop: ${slPrice} | Current: $
-                  {activeTab === "buy" ? buyPrice : sellPrice}
+                  {activeTab === "buy" ? askPrice : bidPrice}
                 </div>
               </div>
             )}
