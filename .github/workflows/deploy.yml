@@ -34,9 +34,9 @@ jobs:
           gcloud compute ssh ${{ secrets.GCP_VM_NAME }} \
             --zone=${{ secrets.GCP_VM_ZONE }} \
             --command "
-              sudo rm -rf ~/repo &&
-              git clone https://github.com/${{ github.repository }} ~/repo &&
-              cd ~/repo &&
+              sudo rm -rf exness &&
+              git clone https://github.com/${{ github.repository }} &&
+              cd exness &&
               docker compose down -v || true &&
               docker stop \$(docker ps -aq) || true &&
               docker rm \$(docker ps -aq) || true &&
