@@ -170,23 +170,23 @@ export default function OrdersPanel() {
   };
 
   return (
-    <div className="bg-[#141D22] border border-[#263136] rounded-lg w-full h-full flex flex-col">
-      <div className="flex border-b border-[#263136]">
+    <div className="bg-neutral-900/80 backdrop-blur-xl border border-neutral-600 rounded-lg w-full h-full flex flex-col">
+      <div className="flex border-b border-neutral-600/40">
         <button
-          className={`flex-1 py-2 text-center text-sm transition ${
+          className={`flex-1 py-3 text-center text-sm font-medium transition ${
             activeTab === "open"
               ? "text-[#158BF9] border-b-2 border-[#158BF9]"
-              : "text-white/70 hover:text-white"
+              : "text-neutral-300 hover:text-neutral-50"
           }`}
           onClick={() => setActiveTab("open")}
         >
           Open Positions
         </button>
         <button
-          className={`flex-1 py-2 text-center text-sm transition ${
+          className={`flex-1 py-3 text-center text-sm font-medium transition ${
             activeTab === "closed"
               ? "text-[#158BF9] border-b-2 border-[#158BF9]"
-              : "text-white/70 hover:text-white"
+              : "text-neutral-300 hover:text-neutral-50"
           }`}
           onClick={() => setActiveTab("closed")}
         >
@@ -194,23 +194,23 @@ export default function OrdersPanel() {
         </button>
       </div>
 
-      <div className="p-2 overflow-auto flex-1">
+      <div className="p-4 overflow-auto flex-1">
         {isLoading ? (
-          <div className="text-center py-4 text-white/50">Loading...</div>
+          <div className="text-center py-8 text-neutral-400">Loading...</div>
         ) : activeTab === "open" ? (
           <>
             {/* Status Legend */}
-            <div className="mb-3 p-2 bg-[#0f171b] border border-[#263136] rounded-md">
-              <div className="flex items-center gap-4 text-xs text-white/60">
-                <div className="flex items-center gap-1">
+            <div className="mb-4 p-3 bg-neutral-800/60 backdrop-blur-sm border border-neutral-600 rounded-md">
+              <div className="flex items-center gap-6 text-sm text-neutral-400">
+                <div className="flex items-center gap-2">
                   <span className="text-green-500">✓</span>
                   <span>TP/SL Hit</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   <span className="text-yellow-500 animate-pulse">!</span>
                   <span>Close to TP/SL</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   <span className="text-red-500 animate-pulse">⚠</span>
                   <span>Near Liquidation</span>
                 </div>
@@ -219,18 +219,18 @@ export default function OrdersPanel() {
             {openWithPnl.length > 0 ? (
               <div className="overflow-x-auto h-full">
                 <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-[#141D22] z-10">
-                    <tr className="text-xs text-white/60 border-b border-[#263136]">
-                      <th className="py-2 px-2 text-left">Symbol</th>
-                      <th className="py-2 px-2 text-right">Type</th>
-                      <th className="py-2 px-2 text-right">Margin</th>
-                      <th className="py-2 px-2 text-right">Leverage</th>
-                      <th className="py-2 px-2 text-right">Open Price</th>
-                      <th className="py-2 px-2 text-right">Take Profit</th>
-                      <th className="py-2 px-2 text-right">Stop Loss</th>
-                      <th className="py-2 px-2 text-right">Liquidation</th>
-                      <th className="py-2 px-2 text-right">Unreal. P&L</th>
-                      <th className="py-2 px-2 text-right">Action</th>
+                  <thead className="sticky top-0 bg-neutral-900/80 backdrop-blur-sm z-10">
+                    <tr className="text-xs text-neutral-400 border-b border-neutral-600/40">
+                      <th className="py-3 px-3 text-left font-medium">Symbol</th>
+                      <th className="py-3 px-3 text-right font-medium">Type</th>
+                      <th className="py-3 px-3 text-right font-medium">Margin</th>
+                      <th className="py-3 px-3 text-right font-medium">Leverage</th>
+                      <th className="py-3 px-3 text-right font-medium">Open Price</th>
+                      <th className="py-3 px-3 text-right font-medium">Take Profit</th>
+                      <th className="py-3 px-3 text-right font-medium">Stop Loss</th>
+                      <th className="py-3 px-3 text-right font-medium">Liquidation</th>
+                      <th className="py-3 px-3 text-right font-medium">Unreal. P&L</th>
+                      <th className="py-3 px-3 text-right font-medium">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -262,7 +262,7 @@ export default function OrdersPanel() {
                       return (
                         <tr
                           key={order.orderId}
-                          className={`border-b border-[#263136]/40 hover:bg-[#1c2a31] ${
+                          className={`border-b border-neutral-600/20 hover:bg-neutral-800/50 ${
                             rowStatus === "executed"
                               ? "bg-green-500/5"
                               : rowStatus === "warning"
@@ -270,12 +270,12 @@ export default function OrdersPanel() {
                               : ""
                           }`}
                         >
-                          <td className="py-2 px-2 font-medium">
+                          <td className="py-3 px-3 font-medium text-neutral-50">
                             {order.asset || "BTC"}
-                            <span className="text-white/50 text-xs">/USDT</span>
+                            <span className="text-neutral-400 text-xs">/USDT</span>
                           </td>
                           <td
-                            className={`py-2 px-2 text-right font-medium ${
+                            className={`py-3 px-3 text-right font-medium ${
                               order.type === "buy"
                                 ? "text-[#158BF9]"
                                 : "text-[#EB483F]"
@@ -283,18 +283,18 @@ export default function OrdersPanel() {
                           >
                             {order.type === "buy" ? "LONG" : "SHORT"}
                           </td>
-                          <td className="py-2 px-2 text-right">
+                          <td className="py-3 px-3 text-right text-neutral-50">
                             {toDisplayPriceUSD(order.margin)} USD
                           </td>
-                          <td className="py-2 px-2 text-right">
+                          <td className="py-3 px-3 text-right text-neutral-50">
                             x{order.leverage}
                           </td>
-                          <td className="py-2 px-2 text-right">
+                          <td className="py-3 px-3 text-right text-neutral-50">
                             ${toDisplayPrice(order.openPrice)}
                           </td>
-                          <td className="py-2 px-2 text-right">
+                          <td className="py-3 px-3 text-right">
                             {order.takeProfit ? (
-                              <div className="flex items-center justify-end gap-1">
+                              <div className="flex items-center justify-end gap-2">
                                 <span className="text-green-400 font-medium">
                                   ${toDisplayPrice(order.takeProfit)}
                                 </span>
@@ -317,12 +317,12 @@ export default function OrdersPanel() {
                                 })()}
                               </div>
                             ) : (
-                              <span className="text-white/40 text-xs">—</span>
+                              <span className="text-neutral-400 text-xs">—</span>
                             )}
                           </td>
-                          <td className="py-2 px-2 text-right">
+                          <td className="py-3 px-3 text-right">
                             {order.stopLoss ? (
-                              <div className="flex items-center justify-end gap-1">
+                              <div className="flex items-center justify-end gap-2">
                                 <span className="text-red-400 font-medium">
                                   ${toDisplayPrice(order.stopLoss)}
                                 </span>
@@ -345,12 +345,12 @@ export default function OrdersPanel() {
                                 })()}
                               </div>
                             ) : (
-                              <span className="text-white/40 text-xs">—</span>
+                              <span className="text-neutral-400 text-xs">—</span>
                             )}
                           </td>
-                          <td className="py-2 px-2 text-right">
+                          <td className="py-3 px-3 text-right">
                             {order.liquidationPrice ? (
-                              <div className="flex items-center justify-end gap-1">
+                              <div className="flex items-center justify-end gap-2">
                                 <span className="text-orange-400 font-medium">
                                   ${toDisplayPrice(order.liquidationPrice)}
                                 </span>
@@ -379,11 +379,11 @@ export default function OrdersPanel() {
                                 })()}
                               </div>
                             ) : (
-                              <span className="text-white/40 text-xs">—</span>
+                              <span className="text-neutral-400 text-xs">—</span>
                             )}
                           </td>
                           <td
-                            className={`py-2 px-2 text-right font-medium ${
+                            className={`py-3 px-3 text-right font-medium ${
                               order.pnlUsd >= 0
                                 ? "text-green-500"
                                 : "text-[#EB483F]"
@@ -392,14 +392,14 @@ export default function OrdersPanel() {
                             {order.pnlUsd >= 0 ? "+" : ""}
                             {toDisplayPriceUSD(order.pnlUsd)} USD
                           </td>
-                          <td className="py-2 px-2 text-right">
+                          <td className="py-3 px-3 text-right">
                             <button
                               onClick={() => closePosition(order.orderId)}
                               disabled={isClosingPosition === order.orderId}
-                              className={`px-2 py-1 text-white rounded text-xs 
+                              className={`px-3 py-2 text-neutral-50 rounded text-sm font-medium transition-colors
                             ${
                               isClosingPosition === order.orderId
-                                ? "bg-gray-500 cursor-not-allowed"
+                                ? "bg-neutral-600 cursor-not-allowed"
                                 : "bg-[#EB483F] hover:bg-[#EB483F]/80"
                             }`}
                             >
@@ -415,7 +415,7 @@ export default function OrdersPanel() {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-8 text-white/50">
+              <div className="text-center py-12 text-neutral-400">
                 No open positions
               </div>
             )}
@@ -424,27 +424,27 @@ export default function OrdersPanel() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-white/60 border-b border-[#263136]">
-                  <th className="py-2 px-2 text-left">Symbol</th>
-                  <th className="py-2 px-2 text-right">Type</th>
-                  <th className="py-2 px-2 text-right">Margin</th>
-                  <th className="py-2 px-2 text-right">Open Price</th>
-                  <th className="py-2 px-2 text-right">Close Price</th>
-                  <th className="py-2 px-2 text-right">P&L</th>
+                <tr className="text-xs text-neutral-400 border-b border-neutral-600/40">
+                  <th className="py-3 px-3 text-left font-medium">Symbol</th>
+                  <th className="py-3 px-3 text-right font-medium">Type</th>
+                  <th className="py-3 px-3 text-right font-medium">Margin</th>
+                  <th className="py-3 px-3 text-right font-medium">Open Price</th>
+                  <th className="py-3 px-3 text-right font-medium">Close Price</th>
+                  <th className="py-3 px-3 text-right font-medium">P&L</th>
                 </tr>
               </thead>
               <tbody>
                 {closedOrders.map((order) => (
                   <tr
                     key={order.orderId}
-                    className="border-b border-[#263136]/40 hover:bg-[#1c2a31]"
+                    className="border-b border-neutral-600/20 hover:bg-neutral-800/50"
                   >
-                    <td className="py-2 px-2 font-medium">
+                    <td className="py-3 px-3 font-medium text-neutral-50">
                       {order.asset || "BTC"}
-                      <span className="text-white/50 text-xs">/USDT</span>
+                      <span className="text-neutral-400 text-xs">/USDT</span>
                     </td>
                     <td
-                      className={`py-2 px-2 text-right ${
+                      className={`py-3 px-3 text-right font-medium ${
                         order.type === "buy"
                           ? "text-[#158BF9]"
                           : "text-[#EB483F]"
@@ -452,17 +452,17 @@ export default function OrdersPanel() {
                     >
                       {order.type === "buy" ? "LONG" : "SHORT"}
                     </td>
-                    <td className="py-2 px-2 text-right">
+                    <td className="py-3 px-3 text-right text-neutral-50">
                       {toDisplayPriceUSD(order.margin)} USD
                     </td>
-                    <td className="py-2 px-2 text-right">
+                    <td className="py-3 px-3 text-right text-neutral-50">
                       ${toDisplayPrice(order.openPrice)}
                     </td>
-                    <td className="py-2 px-2 text-right">
+                    <td className="py-3 px-3 text-right text-neutral-50">
                       ${toDisplayPrice(order.closePrice)}
                     </td>
                     <td
-                      className={`py-2 px-2 text-right font-medium ${
+                      className={`py-3 px-3 text-right font-medium ${
                         toDisplayPriceUSD(order.pnl) >= 0
                           ? "text-green-500"
                           : "text-[#EB483F]"
@@ -477,7 +477,7 @@ export default function OrdersPanel() {
             </table>
           </div>
         ) : (
-          <div className="text-center py-8 text-white/50">No order history</div>
+          <div className="text-center py-12 text-neutral-400">No order history</div>
         )}
       </div>
     </div>

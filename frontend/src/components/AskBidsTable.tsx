@@ -49,33 +49,37 @@ export default function AskBids({ symbol }: { symbol?: SYMBOL }) {
     <div className="w-full">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-xs text-white/60">
-            <th className="py-2 text-left">Symbol</th>
-            <th className="py-2 text-right">Ask</th>
-            <th className="py-2 text-right">Bid</th>
+          <tr className="text-xs text-neutral-400 border-b border-neutral-600/40">
+            <th className="py-3 text-left font-medium">Symbol</th>
+            <th className="py-3 text-right font-medium">Ask</th>
+            <th className="py-3 text-right font-medium">Bid</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#263136]/40">
+        <tbody className="divide-y divide-neutral-600/20">
           {Object.values(bid_asks).map((item) => (
             <tr
               key={item.symbol}
-              className={`hover:bg-[#1c2a31] transition-colors ${
-                symbol === `${item.symbol}USDT` ? "bg-[#1c2a31]" : ""
+              className={`hover:bg-neutral-800/50 transition-colors ${
+                symbol === `${item.symbol}USDT` ? "bg-neutral-800/30" : ""
               }`}
             >
-              <th className="py-3 text-left font-medium text-white ">
-                <img
-                  src={imageUrl[item.symbol as keyof typeof imageUrl]}
-                  alt={item.symbol}
-                  className="h-5 w-5 rounded-full inline-block mr-2"
-                />
-                {item.symbol}
-                <span className="text-xs text-white/50 ml-1">USDT</span>
+              <th className="py-4 text-left font-medium text-neutral-50">
+                <div className="flex items-center">
+                  <img
+                    src={imageUrl[item.symbol as keyof typeof imageUrl]}
+                    alt={item.symbol}
+                    className="h-6 w-6 rounded-full inline-block mr-3"
+                  />
+                  <div>
+                    <div className="text-sm font-semibold">{item.symbol}</div>
+                    <div className="text-xs text-neutral-400">USDT</div>
+                  </div>
+                </div>
               </th>
-              <td className="py-3 text-right font-mono text-[#158BF9]">
+              <td className="py-4 text-right font-mono text-[#158BF9] font-semibold">
                 {item.bids}
               </td>
-              <td className="py-3 text-right font-mono text-[#EB483F]">
+              <td className="py-4 text-right font-mono text-[#EB483F] font-semibold">
                 {item.asks}
               </td>
             </tr>

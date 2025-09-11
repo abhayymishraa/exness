@@ -84,56 +84,46 @@ export default function Signup() {
             </div>
 
             <div className="px-8 pb-8 space-y-6">
-              <div className="relative group">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                  <span className="text-neutral-400 group-focus-within:text-neutral-50 transition-colors duration-300">@</span>
-                </div>
-                <input
-                  type="email"
-                  name="mail"
-                  placeholder="Email"
-                  className="w-full pl-10 pr-4 py-3 bg-neutral-950/50 border border-neutral-600 text-neutral-50 placeholder-neutral-400 focus:outline-none focus:border-neutral-500 focus:bg-neutral-800/50 transition-all duration-300"
-                />
-              </div>
               <form onSubmit={handlesubmit}>
-
-              <div className="relative group">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                  <span className="text-neutral-400 group-focus-within:text-neutral-50 transition-colors duration-300">🔒</span>
-                </div>
-                <input
-                  type="password"
-                  name="pass"
-                  placeholder="Password must be at least 6 characters"
-                  className="w-full pl-10 pr-4 py-3 bg-neutral-950/50 border border-neutral-600 text-neutral-50 placeholder-neutral-400 focus:outline-none focus:border-neutral-500 focus:bg-neutral-800/50 transition-all duration-300"
-                  />
-              </div>
-
-              {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={submitted}
-                className="w-full py-3 bg-neutral-50 text-neutral-950 font-semibold hover:bg-neutral-200 transform transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin h-5 w-5 border-b-2 border-neutral-950 mr-2"></div>
-                    Creating Account...
+                <div className="relative group">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                    <span className="text-neutral-400 group-focus-within:text-neutral-50 transition-colors duration-300">
+                      @
+                    </span>
                   </div>
-                ) : (
-                  <>
-                    <span className="mr-2">+</span>
-                    Create Account
-                  </>
-                )}
-              </button>
+                  <input
+                    type="email"
+                    name="mail"
+                    placeholder="Email"
+                    className="w-full pl-10 pr-4 py-3 ..."
+                  />
+                </div>
 
+                <div className="relative group">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                    <span className="text-neutral-400 group-focus-within:text-neutral-50 transition-colors duration-300">
+                      🔒
+                    </span>
+                  </div>
+                  <input
+                    type="password"
+                    name="pass"
+                    placeholder="Password must be at least 6 characters"
+                    className="w-full pl-10 pr-4 py-3 ..."
+                  />
+                </div>
+
+                {error && <div className="p-3 bg-red-500/10 ...">{error}</div>}
+
+                <button
+                  type="submit"
+                  disabled={submitted}
+                  className="w-full py-3 ..."
+                >
+                  {isLoading ? "Creating Account..." : "Create Account"}
+                </button>
               </form>
+
               <div className="text-center">
                 <p className="text-neutral-400 text-sm">
                   Already have an account?{" "}
