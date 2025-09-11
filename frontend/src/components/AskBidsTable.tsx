@@ -4,12 +4,14 @@ import { toDisplayPrice } from "../utils/utils";
 import { subscribePrices, type LivePrices } from "../utils/price_store";
 
 export interface Trade {
-  buyPrice: number;
-  sellPrice: number;
+  bidPrice: number;
+  askPrice: number;
   symbol: SYMBOL;
 }
 
+
 const imageUrl = {
+
   SOL: "https://i.postimg.cc/9MhDvsK9/b2f0c70f-4fb2-4472-9fe7-480ad1592421.png",
   ETH: "https://i.postimg.cc/gcKhPkY2/3a8c9fe6-2a76-4ace-aa07-415d994de6f0.png",
   BTC: "https://i.postimg.cc/TPh0K530/87496d50-2408-43e1-ad4c-78b47b448a6a.png",
@@ -51,8 +53,8 @@ export default function AskBids({ symbol }: { symbol?: SYMBOL }) {
         <thead>
           <tr className="text-xs text-neutral-400 border-b border-neutral-600/40">
             <th className="py-3 text-left font-medium">Symbol</th>
-            <th className="py-3 text-right font-medium">Ask</th>
             <th className="py-3 text-right font-medium">Bid</th>
+            <th className="py-3 text-right font-medium">Ask</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-600/20">
@@ -77,10 +79,10 @@ export default function AskBids({ symbol }: { symbol?: SYMBOL }) {
                 </div>
               </th>
               <td className="py-4 text-right font-mono text-[#158BF9] font-semibold">
-                {item.bids}
+                {item.asks}
               </td>
               <td className="py-4 text-right font-mono text-[#EB483F] font-semibold">
-                {item.asks}
+                {item.bids}
               </td>
             </tr>
           ))}

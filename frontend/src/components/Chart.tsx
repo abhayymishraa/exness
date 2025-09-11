@@ -31,7 +31,7 @@ export default function ChartComponent({
 }: {
   duration: Duration;
   symbol: SYMBOL;
-  onPriceUpdate?: (prices: { buyPrice: number; sellPrice: number }) => void;
+  onPriceUpdate?: (prices: { bidPrice: number; askPrice: number }) => void;
 }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -110,13 +110,20 @@ export default function ChartComponent({
       const tickWrapper = (trade: Trade) => {
         if (trade.symbol !== symbol) return;
 
-        const candle = processRealupdate(trade as RealtimeUpdate, duration);
+        const tick: RealtimeUpdate = {
+          symbol: trade.symbol,
+          bidPrice: trade.bidPrice,
+          askPrice: trade.askPrice,
+          time: Math.floor(Date.now() / 1000),
+        };
+
+        const candle = processRealupdate(tick, duration);
 
         const prices = {
-          buyPrice: trade.buyPrice || 0,
-          sellPrice: trade.sellPrice || 0,
+          bidPrice: trade.bidPrice || 0,
+          askPrice: trade.askPrice || 0,
         };
-        if (onPriceUpdate && prices.buyPrice > 0 && prices.sellPrice > 0) {
+        if (onPriceUpdate && prices.bidPrice > 0 && prices.askPrice > 0) {
           onPriceUpdate(prices);
         }
 

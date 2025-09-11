@@ -32,8 +32,8 @@ function ensureInitialized() {
   const handler = (raw: unknown) => {
     const t = (raw || {}) as {
       symbol?: string;
-      buyPrice?: number;
-      sellPrice?: number;
+      bidPrice?: number;
+      askPrice?: number;
     };
     const base = String(t.symbol || "BTCUSDT").replace(
       "USDT",
@@ -43,8 +43,8 @@ function ensureInitialized() {
     const next: LivePrices = {
       ...latestPrices,
       [base]: {
-        bid: t.buyPrice ?? latestPrices[base].bid,
-        ask: t.sellPrice ?? latestPrices[base].ask,
+        bid: t.bidPrice ?? latestPrices[base].bid,
+        ask: t.askPrice ?? latestPrices[base].ask,
       },
     };
     latestPrices = next;
