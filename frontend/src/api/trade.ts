@@ -9,7 +9,7 @@ export async function getKlineData(
   asset: any,
   duration: any,
   startTime?: any,
-  endTime?: string
+  endTime?: string,
 ) {
   const currentTimeSec = Math.floor(Date.now() / 1000);
 
@@ -23,7 +23,7 @@ export async function getKlineData(
       startTime: startTimestamp,
       endTime: endTimestamp,
     },
-});
+  });
 
   if (res.data && Array.isArray(res.data.candles)) {
     res.data.candles = res.data.candles.map((candle: any) => ({
@@ -48,7 +48,7 @@ export async function submitsignup(email: string, pass: string) {
       },
       {
         withCredentials: true,
-      }
+      },
     );
     return res.data;
   } catch (e) {
@@ -66,7 +66,7 @@ export async function submitsignin(email: string, pass: string) {
       },
       {
         withCredentials: true,
-      }
+      },
     );
     return res.data;
   } catch (error) {
@@ -134,7 +134,7 @@ export async function closetrade(token: string, orderId: string) {
           Authorization: token,
         },
         withCredentials: true,
-      }
+      },
     );
     return data;
   } catch (e) {

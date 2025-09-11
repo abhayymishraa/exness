@@ -129,7 +129,7 @@ export class Signalingmanager {
   deregisterCallbackNew(symbol: string, callback: (...args: Trade[]) => void) {
     if (this.callbacks[symbol]) {
       this.callbacks[symbol] = this.callbacks[symbol].filter(
-        (cb) => cb !== callback
+        (cb) => cb !== callback,
       );
       if (this.callbacks[symbol].length === 0) {
         delete this.callbacks[symbol];

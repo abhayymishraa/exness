@@ -6,7 +6,7 @@ export function StayonTimeline(
   chart: IChartApi,
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   candlestickSeries: { data: () => any },
-  winsowSize: number = 50
+  winsowSize: number = 50,
 ): void {
   const timetoScale = chart.timeScale();
   const position = timetoScale.scrollPosition();

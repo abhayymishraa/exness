@@ -8,9 +8,9 @@ export function toDisplayPrice(intPrice: number): number {
   return intPrice / PRICE_SCALE;
 }
 
-  export function toInternalPrice(price: number): number {
-    return Math.round(price * PRICE_SCALE);
-  }
+export function toInternalPrice(price: number): number {
+  return Math.round(price * PRICE_SCALE);
+}
 
 export function toDisplayUSD(intUSD: number): number {
   return intUSD / USD_SCALE;
@@ -19,7 +19,6 @@ export function toDisplayUSD(intUSD: number): number {
 export function toInternalUSD(usd: number): number {
   return Math.round(usd * USD_SCALE);
 }
-
 
 // Calculate PnL using integer math to avoid precision loss
 export function calculatePnlCents({
@@ -54,7 +53,6 @@ export function calculatePnlCents({
   const finalPnl = pnlOnPriceScale / CONVERSION_FACTOR;
   return Number(finalPnl);
 }
-
 
 export function getCookieOptions(): CookieOptions {
   const isProd = process.env.NODE_ENV === "production";

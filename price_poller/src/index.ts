@@ -27,7 +27,7 @@ async function main() {
         method: "SUBSCRIBE",
         params: ["btcusdt@aggTrade", "ethusdt@aggTrade", "solusdt@aggTrade"],
         id: 1,
-      })
+      }),
     );
   });
 

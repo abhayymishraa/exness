@@ -32,7 +32,7 @@ function key(symbol: SYMBOL, duration: Duration) {
 
 export function processRealupdate(
   trade: RealtimeUpdate,
-  duration: Duration
+  duration: Duration,
 ): CandlestickData {
   const k = key(trade.symbol, duration);
   let lastCandle = lastCandles[k];
@@ -67,7 +67,7 @@ export function processRealupdate(
 export function initLastCandle(
   symbol: SYMBOL,
   duration: Duration,
-  data: CandlestickData[]
+  data: CandlestickData[],
 ) {
   const k = key(symbol, duration);
   lastCandles[k] = data.length > 0 ? data[data.length - 1] : null;

@@ -5,7 +5,7 @@ import { SECRET, USERS } from "../data";
 export function usermiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const token = req.headers.authorization || req.cookies?.Authorization;
   if (!token) {

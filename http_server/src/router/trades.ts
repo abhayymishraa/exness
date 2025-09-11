@@ -24,7 +24,7 @@ tradesRouter.get("/open", usermiddleware, (req, res) => {
       takeProfit: order.takeProfit,
       stopLoss: order.stopLoss,
       liquidationPrice: order.liquidationPrice,
-    })
+    }),
   );
 
   return res.status(200).json({
@@ -51,7 +51,7 @@ tradesRouter.get("/", usermiddleware, (req, res) => {
       openPrice: order.openPrice,
       closePrice: order.closePrice,
       pnl: order.pnl,
-    })
+    }),
   );
 
   return res.status(200).json({

@@ -3,7 +3,7 @@ import { closeOrder } from "../utils/tradeUtils";
 
 export async function checkOpenPositions(
   asset: string,
-  newPrice: { ask: number; bid: number }
+  newPrice: { ask: number; bid: number },
 ) {
   for (const userid in ORDERS) {
     for (const orderid in ORDERS[userid]) {

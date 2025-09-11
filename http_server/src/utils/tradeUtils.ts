@@ -4,7 +4,7 @@ import { calculatePnlCents } from "./utils";
 export function closeOrder(
   userid: string,
   orderid: string,
-  reason: "manual" | "take_profit" | "stop_loss" | "liquidation"
+  reason: "manual" | "take_profit" | "stop_loss" | "liquidation",
 ) {
   const order = ORDERS[userid]![orderid];
   if (!order) return;
@@ -33,7 +33,7 @@ export function closeOrder(
     closeReason: reason,
   };
   console.log(
-    `Order ${orderid} for user ${userid} closed due to ${reason}. PnL: ${pnl}`
+    `Order ${orderid} for user ${userid} closed due to ${reason}. PnL: ${pnl}`,
   );
   delete ORDERS[userid]![orderid];
   return pnl;

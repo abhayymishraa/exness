@@ -14,7 +14,8 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
     if (!tradeschema.success) {
       return res.status(411).json({ message: "Incorrect inputs" });
     }
-    let { asset, type, margin, leverage, takeProfit, stopLoss } = tradeschema.data;
+    let { asset, type, margin, leverage, takeProfit, stopLoss } =
+      tradeschema.data;
 
     //@ts-ignore
     const userid = req.userId;
@@ -40,16 +41,18 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
     user.balance.usd_balance -= margin;
 
     const orderid = v4();
-    // A simpler order object, without the flawed quantity.
+
     // Compute liquidation price: when unrealized PnL <= -margin
     // PnL = ((close - open) / open) * (margin * leverage)
     // Set liquidation where PnL = -margin -> ((close - open)/open) * leverage = -1
     // => close = open * (1 - 1/leverage) for long; for short, close = open * (1 + 1/leverage)
     // Formula for long: close = open * (1 - 1 / leverage)
-// This calculates the price at which the loss equals 100% of the margin.
-    const liquidationPrice = type === "buy" ? Math.floor((openPrice as number) * (1 - 1 / leverage))
-    // Formula for short: close = open * (1 + 1 / leverage)
-    : Math.floor((openPrice as number) * (1 + 1 / leverage));
+    // This calculates the price at which the loss equals 100% of the margin.
+    const liquidationPrice =
+      type === "buy"
+        ? Math.floor((openPrice as number) * (1 - 1 / leverage))
+        : // Formula for short: close = open * (1 + 1 / leverage)
+          Math.floor((openPrice as number) * (1 + 1 / leverage));
 
     const order = {
       type,
@@ -86,7 +89,7 @@ tradeRouter.post("/close", usermiddleware, (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-      const pnl = closeOrder(userid, orderid, 'manual');
+    const pnl = closeOrder(userid, orderid, "manual");
 
     return res.status(200).json({
       message: "Position closed successfully",
