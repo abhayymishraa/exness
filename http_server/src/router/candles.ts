@@ -65,7 +65,7 @@ candelrouter.get("/", async (req, res) => {
   } catch (err) {
     console.log(
       "errror from the endpoint api/v1/trading/candles/candlesId :",
-      err
+      err,
     );
     res.json({
       msg: "Invalid arguement",

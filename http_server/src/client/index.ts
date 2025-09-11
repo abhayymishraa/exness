@@ -9,4 +9,4 @@ export const pgClient = new Client({
   database: "trades_db",
 });
 
-export const redisclient =  createClient().connect()
+export const redisclient = createClient().connect();

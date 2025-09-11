@@ -30,8 +30,15 @@ function ensureInitialized() {
   initialized = true;
   const signaling = Signalingmanager.getInstance();
   const handler = (raw: unknown) => {
-    const t = (raw || {}) as { symbol?: string; buyPrice?: number; sellPrice?: number };
-    const base = String(t.symbol || "BTCUSDT").replace("USDT", "") as BaseSymbol;
+    const t = (raw || {}) as {
+      symbol?: string;
+      buyPrice?: number;
+      sellPrice?: number;
+    };
+    const base = String(t.symbol || "BTCUSDT").replace(
+      "USDT",
+      "",
+    ) as BaseSymbol;
     if (!(base in latestPrices)) return;
     const next: LivePrices = {
       ...latestPrices,
@@ -51,7 +58,6 @@ function ensureInitialized() {
 export function subscribePrices(listener: Listener): () => void {
   ensureInitialized();
   listeners.add(listener);
-  // push current snapshot immediately
   listener(latestPrices);
   return () => {
     listeners.delete(listener);
@@ -64,5 +70,3 @@ export function subscribePrices(listener: Listener): () => void {
 export function getLatestPrices(): LivePrices {
   return latestPrices;
 }
-
-

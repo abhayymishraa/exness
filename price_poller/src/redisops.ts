@@ -6,7 +6,7 @@ export function pushToRedis(
   redis: any,
   value: any,
   type: SymbolMapKey,
-  time: any
+  time: any,
 ) {
   let symbolmap = {
     SOLUSDT: "SOL",
@@ -27,6 +27,6 @@ export function pushToRedis(
       sellPrice: bid,
       decimals: 4,
       time: Math.floor(new Date(time).getTime() / 1000),
-    })
+    }),
   );
 }

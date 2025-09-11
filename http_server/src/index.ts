@@ -29,7 +29,7 @@ app.use(
   cors({
     origin: ["http://localhost:3000", "https://exness.elevenai.xyz"],
     credentials: true,
-  })
+  }),
 );
 
 app.use("/api/v1/trades", tradesRouter);
