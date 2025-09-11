@@ -169,126 +169,126 @@ export default function BuySell({
 
   return (
     <aside
-      className="w-full rounded-lg border border-[#263136] bg-[#141D22] text-white shadow-sm h-full flex flex-col"
+      className="w-full rounded-lg border border-neutral-600 bg-neutral-900/80 backdrop-blur-xl text-neutral-50 shadow-sm h-full flex flex-col"
       aria-label="Trade ticket"
     >
-      <div className="flex border-b border-[#263136]">
+      <div className="flex border-b border-neutral-600/40">
         <button
           onClick={() => setActiveTab("buy")}
-          className={`flex-1 py-2 text-center font-medium text-xs transition ${
+          className={`flex-1 py-3 text-center font-medium text-sm transition ${
             activeTab === "buy"
               ? "text-[#158BF9] border-b-2 border-[#158BF9]"
-              : "text-white/70 hover:text-white"
+              : "text-neutral-300 hover:text-neutral-50"
           }`}
         >
           Buy {symbol}
         </button>
         <button
           onClick={() => setActiveTab("sell")}
-          className={`flex-1 py-2 text-center font-medium text-xs transition ${
+          className={`flex-1 py-3 text-center font-medium text-sm transition ${
             activeTab === "sell"
               ? "text-[#EB483F] border-b-2 border-[#EB483F]"
-              : "text-white/70 hover:text-white"
+              : "text-neutral-300 hover:text-neutral-50"
           }`}
         >
           Sell {symbol}
         </button>
       </div>
 
-      <div className="p-3 flex-1 overflow-y-auto">
-        <header className="mb-2">
+      <div className="p-4 flex-1 overflow-y-auto">
+        <header className="mb-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-medium text-white/80">
+            <h2 className="text-sm font-medium text-neutral-50">
               {activeTab === "buy" ? "Buy Order" : "Sell Order"}
             </h2>
-            <span className="rounded-md border border-[#263136] bg-[#0f171b] px-1.5 py-0.5 text-xs text-white/70">
+            <span className="rounded-md border border-neutral-600 bg-neutral-800/60 backdrop-blur-sm px-3 py-1 text-xs text-neutral-300">
               {orderType === "market" ? "Market" : "Limit"}
             </span>
           </div>
 
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-3 flex items-center gap-3">
             {currentAsset ? (
-              <div className="flex items-center gap-2 p-1.5 bg-[#0f171b]/80 rounded-md border border-[#263136]">
+              <div className="flex items-center gap-3 p-3 bg-neutral-800/60 backdrop-blur-sm rounded-md border border-neutral-600">
                 <img
                   src={currentAsset.imageUrl}
                   alt={currentAsset.name}
-                  className="h-5 w-5 rounded-full"
+                  className="h-6 w-6 rounded-full"
                 />
                 <div>
-                  <div className="text-sm font-semibold">
+                  <div className="text-sm font-semibold text-neutral-50">
                     {currentAsset.name}
                   </div>
-                  <div className="text-xs text-white/50">{symbol}/USDT</div>
+                  <div className="text-xs text-neutral-400">{symbol}/USDT</div>
                 </div>
               </div>
             ) : (
-              <div className="text-sm font-semibold">{symbol}</div>
+              <div className="text-sm font-semibold text-neutral-50">{symbol}</div>
             )}
-            <div className="text-xs ml-auto bg-[#1c2a31] px-2 py-1 rounded-md">
-              <span className="text-white/70">Balance:</span>
-              <span className="text-green-400 font-medium ml-1">
+            <div className="text-xs ml-auto bg-neutral-800/60 backdrop-blur-sm px-3 py-2 rounded-md border border-neutral-600">
+              <span className="text-neutral-300">Balance:</span>
+              <span className="text-green-400 font-medium ml-2">
                 ${toDisplayPriceUSD(userBalance)} USD
               </span>
             </div>
           </div>
         </header>
 
-        <section className="grid grid-cols-2 gap-2 mt-3" aria-label="Prices">
-          <div className="rounded-lg border border-[#263136] bg-[#0f171b]/70 p-2 relative overflow-hidden">
+        <section className="grid grid-cols-2 gap-3 mt-4" aria-label="Prices">
+          <div className="rounded-lg border border-neutral-600 bg-neutral-800/60 backdrop-blur-sm p-3 relative overflow-hidden">
             <div className="flex items-center justify-between">
-              <div className="text-xs text-white/60">Sell Price</div>
-              <div className="text-[10px] bg-[#EB483F]/20 text-[#EB483F] px-1 py-0.5 rounded">
+              <div className="text-sm text-neutral-400">Sell Price</div>
+              <div className="text-xs bg-[#EB483F]/20 text-[#EB483F] px-2 py-1 rounded">
                 SELL
               </div>
             </div>
-            <div className="mt-1 text-base font-semibold text-[#EB483F] flex items-center">
-              <span className="text-xs mr-1">$</span>
+            <div className="mt-2 text-lg font-semibold text-[#EB483F] flex items-center">
+              <span className="text-sm mr-1">$</span>
               {sellPrice}
             </div>
             <div className="absolute w-1 h-full bg-[#EB483F]/40 left-0 top-0"></div>
           </div>
-          <div className="rounded-lg border border-[#263136] bg-[#0f171b]/70 p-2 relative overflow-hidden">
+          <div className="rounded-lg border border-neutral-600 bg-neutral-800/60 backdrop-blur-sm p-3 relative overflow-hidden">
             <div className="flex items-center justify-between">
-              <div className="text-xs text-white/60">Buy Price</div>
-              <div className="text-[10px] bg-[#158BF9]/20 text-[#158BF9] px-1 py-0.5 rounded">
+              <div className="text-sm text-neutral-400">Buy Price</div>
+              <div className="text-xs bg-[#158BF9]/20 text-[#158BF9] px-2 py-1 rounded">
                 BUY
               </div>
             </div>
-            <div className="mt-1 text-base font-semibold text-[#158BF9] flex items-center">
-              <span className="text-xs mr-1">$</span>
+            <div className="mt-2 text-lg font-semibold text-[#158BF9] flex items-center">
+              <span className="text-sm mr-1">$</span>
               {buyPrice}
             </div>
             <div className="absolute w-1 h-full bg-[#158BF9]/40 left-0 top-0"></div>
           </div>
         </section>
 
-        <section className="mt-3" aria-label="Risk indicator">
-          <div className="bg-[#0f171b] border border-[#263136] rounded-md p-2">
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1">
+        <section className="mt-4" aria-label="Risk indicator">
+          <div className="bg-neutral-800/60 backdrop-blur-sm border border-neutral-600 rounded-md p-3">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="text-white/60"
+                  className="text-neutral-400"
                 >
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
-                <span className="text-white/60">Risk Level</span>
+                <span className="text-neutral-400">Risk Level</span>
               </div>
-              <span className="font-medium text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded text-[10px]">
+              <span className="font-medium text-green-400 bg-green-500/10 px-2 py-1 rounded text-xs">
                 LOW
               </span>
             </div>
-            <div className="mt-1.5 h-1.5 w-full rounded-full bg-[#263136] overflow-hidden">
+            <div className="mt-2 h-2 w-full rounded-full bg-neutral-600 overflow-hidden">
               <div
-                className="h-1.5 rounded-full bg-gradient-to-r from-green-500 to-green-400"
+                className="h-2 rounded-full bg-gradient-to-r from-green-500 to-green-400"
                 style={{ width: "30%" }}
                 aria-hidden="true"
               />

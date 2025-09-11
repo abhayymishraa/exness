@@ -178,26 +178,26 @@ export default function ChartComponent({
   }, [duration, symbol, onPriceUpdate]);
 
   return (
-    <div className="text-white h-full w-full relative">
+    <div className="text-neutral-50 h-full w-full relative">
       {tooltipVisible && tooltip && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 bg-[#0f171b] border border-[#263136] rounded-md text-sm shadow-lg transition-opacity">
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 bg-neutral-900/90 backdrop-blur-sm border border-neutral-600 rounded-md text-sm shadow-lg transition-opacity">
           {tooltip}
         </div>
       )}
-      <div className="bg-[#141D22] border border-[#263136] rounded-lg overflow-hidden h-full w-full flex flex-col">
-        <div className="flex items-center justify-between p-1.5 border-b border-[#263136]">
+      <div className="bg-neutral-900/80 backdrop-blur-xl border border-neutral-600 rounded-lg overflow-hidden h-full w-full flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-neutral-600/40">
           <div>
-            <h2 className="text-sm md:text-base font-medium">{symbol}</h2>
-            <div className="text-xs text-white/60">
+            <h2 className="text-lg font-semibold text-neutral-50">{symbol}</h2>
+            <div className="text-sm text-neutral-400">
               {duration === Duration.candles_1m && "1 Minute Chart"}
               {duration === Duration.candles_1d && "Daily Chart"}
               {duration === Duration.candles_1w && "Weekly Chart"}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center border border-[#263136] rounded-md bg-[#0f171b]">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center border border-neutral-600 rounded-md bg-neutral-800/60 backdrop-blur-sm">
               <button
-                className="p-1.5 rounded-l-md hover:bg-[#263136] transition-colors"
+                className="p-2 rounded-l-md hover:bg-neutral-700/50 transition-colors text-neutral-300 hover:text-neutral-50"
                 onClick={() => {
                   if (chartRef.current) {
                     const logicalRange = chartRef.current
@@ -223,8 +223,8 @@ export default function ChartComponent({
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -238,9 +238,9 @@ export default function ChartComponent({
                   <line x1="8" y1="11" x2="14" y2="11"></line>
                 </svg>
               </button>
-              <div className="w-[1px] h-6 bg-[#263136]"></div>
+              <div className="w-[1px] h-8 bg-neutral-600"></div>
               <button
-                className="p-1.5 hover:bg-[#263136] transition-colors"
+                className="p-2 hover:bg-neutral-700/50 transition-colors text-neutral-300 hover:text-neutral-50"
                 onClick={() => {
                   if (chartRef.current) {
                     const logicalRange = chartRef.current
@@ -263,8 +263,8 @@ export default function ChartComponent({
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -277,9 +277,9 @@ export default function ChartComponent({
                   <line x1="8" y1="11" x2="14" y2="11"></line>
                 </svg>
               </button>
-              <div className="w-[1px] h-6 bg-[#263136]"></div>
+              <div className="w-[1px] h-8 bg-neutral-600"></div>
               <button
-                className="p-1.5 rounded-r-md hover:bg-[#263136] transition-colors"
+                className="p-2 rounded-r-md hover:bg-neutral-700/50 transition-colors text-neutral-300 hover:text-neutral-50"
                 onClick={() => {
                   if (chartRef.current) {
                     chartRef.current.timeScale().fitContent();
@@ -290,8 +290,8 @@ export default function ChartComponent({
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -304,11 +304,11 @@ export default function ChartComponent({
                 </svg>
               </button>
             </div>
-            <button className="p-1.5 rounded-md hover:bg-[#263136] transition-colors">
+            <button className="p-2 rounded-md hover:bg-neutral-700/50 transition-colors text-neutral-300 hover:text-neutral-50">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
+                width="16"
+                height="16"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
