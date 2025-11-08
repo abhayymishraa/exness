@@ -1,4 +1,5 @@
-import { Router } from "express";
+import { Router, NextFunction, Request, Response } from "express";
+import { CustomError } from "../middleware/errorHandler";
 import { usermiddleware } from "../middleware";
 import { CLOSEDORDERS, ORDERS, PRICESTORE, USERS } from "../data";
 import { tradeSchema } from "../types/userschema";
@@ -8,11 +9,11 @@ import { closeOrder } from "../utils/tradeUtils";
 
 export const tradeRouter = Router();
 
-tradeRouter.post("/", usermiddleware, async (req, res) => {
+tradeRouter.post("/", usermiddleware, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const tradeschema = tradeSchema.safeParse(req.body);
     if (!tradeschema.success) {
-      return res.status(411).json({ message: "Incorrect inputs" });
+      return next(new CustomError("Incorrect inputs", 400, "INVALID_INPUT"));
     }
     let { asset, type, margin, leverage, takeProfit, stopLoss } =
       tradeschema.data;
@@ -22,7 +23,7 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
     const user = USERS[userid];
 
     if (!user) {
-      return res.status(411).json({ message: "User not found" });
+      return next(new CustomError("User not found", 404, "USER_NOT_FOUND"));
     }
 
     if (asset && asset.endsWith("USDT")) {
@@ -33,9 +34,7 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
     const openPrice = type === "buy" ? basePriceData?.ask : basePriceData?.bid;
 
     if (!openPrice || user.balance.usd_balance < margin) {
-      return res
-        .status(411)
-        .json({ message: "Invalid asset or insufficient funds" });
+      return next(new CustomError("Invalid asset or insufficient funds", 400, "INSUFFICIENT_FUNDS"));
     }
 
     user.balance.usd_balance -= margin;
@@ -72,7 +71,10 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
     ORDERS[userid][orderid] = order;
 
     return res.status(200).json({ orderId: orderid });
-  } catch (e) {
+  } catch (error) {
+    console.error("Trade creation error:", error);
+    next(new CustomError("Server error during trade creation", 500, "INTERNAL_SERVER_ERROR"));
+  }
     console.log("error while trade", e);
     return res
       .status(500)
@@ -80,13 +82,13 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
   }
 });
 
-tradeRouter.post("/close", usermiddleware, (req, res) => {
+tradeRouter.post("/close", usermiddleware, (req: Request, res: Response, next: NextFunction) => {
   try {
     const { orderid } = req.body;
     //@ts-ignore
     const userid = req.userId;
     if (!ORDERS[userid] || !ORDERS[userid][orderid]) {
-      return res.status(404).json({ message: "Order not found" });
+      return next(new CustomError("Order not found", 404, "ORDER_NOT_FOUND"));
     }
 
     const pnl = closeOrder(userid, orderid, "manual");
@@ -95,7 +97,10 @@ tradeRouter.post("/close", usermiddleware, (req, res) => {
       message: "Position closed successfully",
       pnl: pnl,
     });
-  } catch (e) {
+  } catch (error) {
+    console.error("Order closing error:", error);
+    next(new CustomError("Something went wrong", 500, "INTERNAL_SERVER_ERROR"));
+  }
     console.log("Err", e);
     return res.status(500).json({ message: "Something went wrong" });
   }

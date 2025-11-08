@@ -1,11 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
+import { CustomError } from "./errorHandler";
 import jwt from "jsonwebtoken";
 import { SECRET, USERS } from "../data";
 
 export function usermiddleware(
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) {
   const token = req.headers.authorization || req.cookies?.Authorization;
   if (!token) {
@@ -21,7 +22,12 @@ export function usermiddleware(
       return res.status(403).json({ message: "Incorrect credentials" });
     }
     next();
-  } catch {
+  } catch (error) {
+    next(new CustomError("Incorrect credentials", 403, "INCORRECT_CREDENTIALS"));
+  }
+  } catch (error) {
+    next(new CustomError("Incorrect credentials", 403, "INCORRECT_CREDENTIALS"));
+  }
     return res.status(403).json({ message: "Incorrect credentials" });
   }
 }
