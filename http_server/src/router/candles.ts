@@ -1,9 +1,10 @@
-import { Router } from "express";
+import { Router, NextFunction, Request, Response } from "express";
+import { CustomError } from "../middleware/errorHandler";
 import { pgClient } from "..";
 
 export const candelrouter = Router();
 
-candelrouter.get("/", async (req, res) => {
+candelrouter.get("/", async (req: Request, res: Response, next: NextFunction) => {
   console.log(" i am here ");
   const duration = req.query.ts;
   const asset = req.query.asset;
@@ -22,7 +23,7 @@ candelrouter.get("/", async (req, res) => {
       dbtable = "candles_1d";
       break;
     default:
-      return res.status(400).json({ message: "Invalid time duration" });
+      return next(new CustomError("Invalid time duration", 400, "INVALID_TIME_DURATION"));
   }
 
   let symbol;
@@ -37,7 +38,7 @@ candelrouter.get("/", async (req, res) => {
       symbol = "SOLUSDT";
       break;
     default:
-      return res.status(400).json({ message: "Invalid asset" });
+      return next(new CustomError("Invalid asset", 400, "INVALID_ASSET"));
   }
 
   console.log(dbtable, symbol, startTime, endTime);
@@ -62,7 +63,10 @@ candelrouter.get("/", async (req, res) => {
     }));
 
     res.status(200).json({ candles });
-  } catch (err) {
+  } catch (error) {
+    console.error("Candles endpoint error:", error);
+    next(new CustomError("Invalid argument", 500, "INTERNAL_SERVER_ERROR"));
+  }
     console.log(
       "errror from the endpoint api/v1/trading/candles/candlesId :",
       err,

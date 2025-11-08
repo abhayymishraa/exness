@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { Client } from "pg";
 import { userRouter } from "./router/user";
+import { errorHandler } from "./middleware/errorHandler";
 import { RedisManager } from "./utils/redisClient";
 import { CLOSEDORDERS, ORDERS, PRICESTORE, USERS } from "./data";
 import { calculatePnlCents } from "./utils/utils";

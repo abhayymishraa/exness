@@ -1,10 +1,11 @@
-import { Router } from "express";
+import { Router, NextFunction, Request, Response } from "express";
+import { CustomError } from "../middleware/errorHandler";
 import { usermiddleware } from "../middleware";
 import { CLOSEDORDERS, ORDERS } from "../data";
 
 export const tradesRouter = Router();
 
-tradesRouter.get("/open", usermiddleware, (req, res) => {
+tradesRouter.get("/open", usermiddleware, (req: Request, res: Response, next: NextFunction) => {
   //@ts-ignore
   const userid = req.userId;
   if (!ORDERS[userid]) {
@@ -32,7 +33,7 @@ tradesRouter.get("/open", usermiddleware, (req, res) => {
   });
 });
 
-tradesRouter.get("/", usermiddleware, (req, res) => {
+tradesRouter.get("/", usermiddleware, (req: Request, res: Response, next: NextFunction) => {
   //@ts-ignore
   const userid = req.userId!;
 
@@ -59,6 +60,6 @@ tradesRouter.get("/", usermiddleware, (req, res) => {
   });
 });
 
-tradesRouter.post("/orders", (req, res) => {
+tradesRouter.post("/orders", (req: Request, res: Response, next: NextFunction) => {
   const query = req.query;
 });
