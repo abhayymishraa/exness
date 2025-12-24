@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { usermiddleware } from "../middleware";
+import { apiLimiter, orderCreationLimiter } from "../middleware/rateLimiter";
 import { CLOSEDORDERS, ORDERS } from "../data";
 
 export const tradesRouter = Router();
 
-tradesRouter.get("/open", usermiddleware, (req, res) => {
+tradesRouter.get("/open", apiLimiter, usermiddleware, (req, res) => {
   //@ts-ignore
   const userid = req.userId;
   if (!ORDERS[userid]) {
@@ -32,7 +33,7 @@ tradesRouter.get("/open", usermiddleware, (req, res) => {
   });
 });
 
-tradesRouter.get("/", usermiddleware, (req, res) => {
+tradesRouter.get("/", apiLimiter, usermiddleware, (req, res) => {
   //@ts-ignore
   const userid = req.userId!;
 
@@ -59,6 +60,6 @@ tradesRouter.get("/", usermiddleware, (req, res) => {
   });
 });
 
-tradesRouter.post("/orders", (req, res) => {
+tradesRouter.post("/orders", usermiddleware, orderCreationLimiter, (req, res) => {
   const query = req.query;
 });
