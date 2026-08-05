@@ -149,7 +149,8 @@ async function initializeTimescale() {
       'candles_1m',
       start_offset => INTERVAL '20 minutes',
       end_offset => INTERVAL '1 minute',
-      schedule_interval => INTERVAL '30 seconds'
+      schedule_interval => INTERVAL '30 seconds',
+      if_not_exists => TRUE
     );
   `);
 
@@ -158,7 +159,8 @@ async function initializeTimescale() {
       'candles_1w',
       start_offset => INTERVAL '3 weeks',
       end_offset => INTERVAL '1 week',
-      schedule_interval => INTERVAL '1 day'
+      schedule_interval => INTERVAL '1 day',
+      if_not_exists => TRUE
     );
   `);
 
@@ -167,7 +169,8 @@ async function initializeTimescale() {
       'candles_1d',
       start_offset => INTERVAL '2 months',
       end_offset => INTERVAL '1 day',
-      schedule_interval => INTERVAL '1 hour'
+      schedule_interval => INTERVAL '1 hour',
+      if_not_exists => TRUE
     );
   `);
 
