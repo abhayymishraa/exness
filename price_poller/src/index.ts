@@ -9,7 +9,7 @@ let tradeBatch: any = [];
 
 async function main() {
   const redis = await createClient({
-    url: "redis://redis_service:6379",
+    url: process.env.REDIS_URL ?? "redis://localhost:6379",
   }).connect();
   console.log("redis is connected");
 

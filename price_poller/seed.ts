@@ -82,11 +82,9 @@
 import { Client } from "pg";
 
 const client = new Client({
-  host: "timescale_db",
-  port: 5432,
-  user: "user",
-  password: "XYZ@123",
-  database: "trades_db",
+  connectionString:
+    process.env.DATABASE_URL ??
+    "postgresql://user:XYZ%40123@localhost:5432/trades_db",
 });
 
 async function initializeTimescale() {

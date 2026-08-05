@@ -1,0 +1,33 @@
+[Unit]
+Description=exness binance price poller
+After=network-online.target postgresql.service redis-server.service
+Wants=network-online.target
+Requires=postgresql.service redis-server.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/srv/exness/price_poller
+EnvironmentFile=/etc/exness/exness.env
+ExecStart=/usr/local/bin/bun run src/index.ts
+
+# Upstream Binance WS drops connections routinely; always come back.
+Restart=always
+RestartSec=5
+StartLimitBurst=10
+StartLimitIntervalSec=120
+
+MemoryMax=512M
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=exness-poller
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/exness/price_poller
+
+[Install]
+WantedBy=multi-user.target

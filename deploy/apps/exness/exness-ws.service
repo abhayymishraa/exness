@@ -1,0 +1,33 @@
+[Unit]
+Description=exness websocket fanout
+After=network-online.target redis-server.service
+Wants=network-online.target
+Requires=redis-server.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/srv/exness/ws
+EnvironmentFile=/etc/exness/exness.env
+Environment=PORT=8080
+ExecStart=/usr/local/bin/bun run index.ts
+
+Restart=always
+RestartSec=3
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+MemoryMax=512M
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=exness-ws
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/exness/ws
+
+[Install]
+WantedBy=multi-user.target

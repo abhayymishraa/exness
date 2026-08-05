@@ -1,0 +1,40 @@
+# /etc/caddy/sites/exness.caddy
+#
+#   https://api.exness.abhayymishraa.us/api/v1/...   -> http_server :5000
+#   wss://ws.exness.abhayymishraa.us                 -> ws service  :8080
+#
+# Caddy obtains and renews the Let's Encrypt certs itself. The DNS records must
+# stay grey-cloud (DNS only) in Cloudflare — an orange-cloud proxy intercepts
+# the HTTP-01 challenge on port 80.
+#
+# Adding another project = another file in /etc/caddy/sites/ + `systemctl reload caddy`.
+
+api.exness.abhayymishraa.us {
+	reverse_proxy 127.0.0.1:5000
+	encode zstd gzip
+	log {
+		output file /var/log/caddy/exness-api.log
+	}
+}
+
+ws.exness.abhayymishraa.us {
+	# Caddy proxies WebSocket upgrades natively — no extra config needed.
+	reverse_proxy 127.0.0.1:8080
+	log {
+		output file /var/log/caddy/exness-ws.log
+	}
+}
+
+# Keep the bare IP working for curl/health checks. No TLS possible on an IP.
+:80 {
+	handle /api/* {
+		reverse_proxy 127.0.0.1:5000
+	}
+	handle /ws* {
+		uri strip_prefix /ws
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle {
+		respond "exness ok" 200
+	}
+}

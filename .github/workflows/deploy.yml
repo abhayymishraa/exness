@@ -1,49 +1,32 @@
-name: Deploy to GCP VM
+name: Deploy to Oracle
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main 
-  schedule:
-    - cron: "0 0 */2 * *"
+    branches: [main]
+
+# A second push landing mid-deploy would interleave rsync with a service
+# restart. Queue instead of racing.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT }}
-
-      - name: Start VM (if stopped)
+      - name: Add SSH key
         run: |
-          gcloud compute instances start ${{ secrets.GCP_VM_NAME }} \
-            --zone=${{ secrets.GCP_VM_ZONE }}
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Run commands on VM
-        run: |
-          gcloud compute ssh ${{ secrets.GCP_VM_NAME }} \
-            --zone=${{ secrets.GCP_VM_ZONE }} \
-            --command "
-              sudo rm -r exness &&
-              git clone https://github.com/${{ github.repository }} &&
-              cd exness &&
-              docker compose down -v || true &&
-              docker stop \$(docker ps -aq) || true &&
-              docker rm \$(docker ps -aq) || true &&
-              docker volume prune -f || true &&
-              docker network prune -f || true &&
-              docker compose build --no-cache &&
-              docker compose up -d
-            "
+      - name: Deploy
+        env:
+          HOST: ${{ secrets.SSH_HOST }}
+          KEY: /home/runner/.ssh/id_rsa
+          SSH_USER: ubuntu
+        run: bash deploy/deploy.sh

@@ -11,14 +11,12 @@ import { assetrouter } from "./router/asset";
 import { tradeRouter } from "./router/trade";
 import { checkOpenPositions } from "./service/orderschecker";
 
-const port = 5000;
+const port = Number(process.env.PORT ?? 5000);
 
 export const pgClient = new Client({
-  host: "timescale_db",
-  port: 5432,
-  user: "user",
-  password: "XYZ@123",
-  database: "trades_db",
+  connectionString:
+    process.env.DATABASE_URL ??
+    "postgresql://user:XYZ%40123@localhost:5432/trades_db",
 });
 
 await pgClient.connect();
@@ -27,7 +25,7 @@ export const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://exness.elevenai.xyz"],
+    origin: (process.env.CORS_ORIGINS ?? "http://localhost:3000").split(","),
     credentials: true,
   }),
 );

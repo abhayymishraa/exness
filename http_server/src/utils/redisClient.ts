@@ -7,12 +7,9 @@ export class RedisManager {
   private subclient: RedisClientType;
 
   private constructor() {
-    this.pubclient = createClient({
-      url: "redis://redis_service:6379",
-    });
-    this.subclient = createClient({
-      url: "redis://redis_service:6379",
-    });
+    const url = process.env.REDIS_URL ?? "redis://localhost:6379";
+    this.pubclient = createClient({ url });
+    this.subclient = createClient({ url });
   }
 
   static async getInstance() {

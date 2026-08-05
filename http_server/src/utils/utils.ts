@@ -62,6 +62,8 @@ export function getCookieOptions(): CookieOptions {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
-    domain: isProd ? ".exness.elevenai.xyz" : undefined,
+    // ponytail: unset unless frontend+API share a parent domain. Vercel->sslip.io
+    // is cross-site, so the cookie must have NO domain attr (host-only) + secure.
+    domain: process.env.COOKIE_DOMAIN || undefined,
   };
 }
