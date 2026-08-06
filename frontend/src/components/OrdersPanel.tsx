@@ -170,8 +170,8 @@ export default function OrdersPanel() {
   };
 
   return (
-    <div className="bg-neutral-900/80 backdrop-blur-xl border border-neutral-600 rounded-lg w-full h-full flex flex-col">
-      <div className="flex border-b border-neutral-600/40">
+    <div className="w-full h-full flex flex-col bg-surface text-ink">
+      <div className="flex border-b border-line">
         <button
           className={`flex-1 py-3 text-center text-sm font-medium transition ${
             activeTab === "open"
@@ -200,7 +200,7 @@ export default function OrdersPanel() {
         ) : activeTab === "open" ? (
           <>
             {/* Status Legend */}
-            <div className="mb-4 p-3 bg-neutral-800/60 backdrop-blur-sm border border-neutral-600 rounded-md">
+            <div className="mb-4 p-3 bg-neutral-800/60 border border-neutral-600 rounded-md">
               <div className="flex items-center gap-6 text-sm text-neutral-400">
                 <div className="flex items-center gap-2">
                   <span className="text-green-500">✓</span>
@@ -219,8 +219,8 @@ export default function OrdersPanel() {
             {openWithPnl.length > 0 ? (
               <div className="overflow-x-auto h-full">
                 <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-neutral-900/80 backdrop-blur-sm z-10">
-                    <tr className="text-xs text-neutral-400 border-b border-neutral-600/40">
+                  <thead className="sticky top-0 bg-neutral-900/80 z-10">
+                    <tr className="text-xs text-neutral-400 border-b border-line">
                       <th className="py-3 px-3 text-left font-medium">Symbol</th>
                       <th className="py-3 px-3 text-right font-medium">Type</th>
                       <th className="py-3 px-3 text-right font-medium">Margin</th>
@@ -424,7 +424,7 @@ export default function OrdersPanel() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-neutral-400 border-b border-neutral-600/40">
+                <tr className="text-xs text-neutral-400 border-b border-line">
                   <th className="py-3 px-3 text-left font-medium">Symbol</th>
                   <th className="py-3 px-3 text-right font-medium">Type</th>
                   <th className="py-3 px-3 text-right font-medium">Margin</th>

@@ -1,20 +1,32 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import ChartComponent from "../components/Chart";
 import { Channels, Duration } from "../utils/constants";
 import type { SYMBOL } from "../utils/constants";
 import AskBids from "../components/AskBidsTable";
 import { findUserAmount } from "../api/trade";
-import { useNavigate } from "react-router";
 import OrdersPanel from "../components/OrdersPanel";
 import BuySell from "../components/BuySell";
 import { toDisplayPrice } from "../utils/utils";
+
+const PAIRS: { symbol: SYMBOL; label: string }[] = [
+  { symbol: Channels.BTCUSDT, label: "BTC/USDT" },
+  { symbol: Channels.ETHUSDT, label: "ETH/USDT" },
+  { symbol: Channels.SOLUSDT, label: "SOL/USDT" },
+];
+
+const TIMEFRAMES: { value: Duration; label: string }[] = [
+  { value: Duration.candles_1m, label: "1m" },
+  { value: Duration.candles_1d, label: "1d" },
+  { value: Duration.candles_1w, label: "1w" },
+];
 
 export default function Trading() {
   const [duration, setDuration] = useState<Duration>(Duration.candles_1m);
   const [symbol, setSymbol] = useState<SYMBOL>(Channels.BTCUSDT);
   const [prices, setPrices] = useState({ askPrice: 0, bidPrice: 0 });
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     async function checkdata() {
       try {
@@ -28,148 +40,107 @@ export default function Trading() {
         navigate("/signin");
       }
     }
-
     checkdata();
   }, [navigate]);
 
+  const signOut = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userID");
+    navigate("/signin");
+  };
+
   return (
-    <div className="min-h-screen bg-neutral-950 overflow-hidden flex flex-col font-mono">
-      {/* Background Effects */}
-      <div className="fixed inset-0 bg-neutral-950">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-neutral-500/10 via-neutral-600/5 to-transparent blur-3xl"></div>
-        <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-gradient-to-bl from-neutral-400/8 via-neutral-500/4 to-transparent blur-3xl"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-gradient-to-tr from-neutral-600/6 via-neutral-400/3 to-transparent blur-3xl"></div>
-        
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(115,115,115,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(115,115,115,0.05)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-      </div>
+    <div className="flex h-dvh flex-col bg-base text-ink">
+      {/* The previous shell had no way out of the terminal — no home link, no
+          sign out. */}
+      <header className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-line px-4 py-2.5">
+        <Link to="/" className="flex items-baseline gap-2.5">
+          <span className="grid h-5 w-5 place-items-center bg-accent text-[11px] font-bold text-[#04121f]">
+            E
+          </span>
+          <span className="text-[13px] font-semibold tracking-tight">Exness</span>
+        </Link>
 
-      <div className="relative z-10 w-full h-full flex flex-col p-4">
-        <div className="bg-neutral-900/80 backdrop-blur-xl border border-neutral-600 p-4 rounded-lg mb-4 flex gap-4 overflow-x-auto">
-          <button
-            className={`px-4 py-2 rounded-md transition-all ${
-              symbol === Channels.BTCUSDT
-                ? "bg-[#158BF9]/10 text-[#158BF9] border border-[#158BF9]/30"
-                : "text-neutral-50 hover:bg-neutral-800/50 border border-neutral-600/50"
-            }`}
-            disabled={symbol === Channels.BTCUSDT}
-            onClick={() => setSymbol(Channels.BTCUSDT)}
-          >
-            <div className="flex items-center">
-              <span className="font-medium text-sm">BTC/USDT</span>
-              <span className="ml-2 text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded">
-                +2.4%
-              </span>
-            </div>
-          </button>
+        <nav aria-label="Instrument" className="flex items-center gap-1">
+          {PAIRS.map((p) => {
+            const active = symbol === p.symbol;
+            return (
+              <button
+                key={p.symbol}
+                onClick={() => setSymbol(p.symbol)}
+                aria-current={active ? "true" : undefined}
+                className={`num rounded-[3px] px-3 py-1.5 text-[13px] font-medium transition-colors ${
+                  active
+                    ? "bg-accent/15 text-accent"
+                    : "text-ink-dim hover:bg-raised hover:text-ink"
+                }`}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </nav>
 
-          <button
-            className={`px-4 py-2 rounded-md transition-all ${
-              symbol === Channels.ETHUSDT
-                ? "bg-[#158BF9]/10 text-[#158BF9] border border-[#158BF9]/30"
-                : "text-neutral-50 hover:bg-neutral-800/50 border border-neutral-600/50"
-            }`}
-            disabled={symbol === Channels.ETHUSDT}
-            onClick={() => setSymbol(Channels.ETHUSDT)}
-          >
-            <div className="flex items-center">
-              <span className="font-medium text-sm">ETH/USDT</span>
-              <span className="ml-2 text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded">
-                +1.9%
-              </span>
-            </div>
-          </button>
-
-          <button
-            className={`px-4 py-2 rounded-md transition-all ${
-              symbol === Channels.SOLUSDT
-                ? "bg-[#158BF9]/10 text-[#158BF9] border border-[#158BF9]/30"
-                : "text-neutral-50 hover:bg-neutral-800/50 border border-neutral-600/50"
-            }`}
-            disabled={symbol === Channels.SOLUSDT}
-            onClick={() => setSymbol(Channels.SOLUSDT)}
-          >
-            <div className="flex items-center">
-              <span className="font-medium text-sm">SOL/USDT</span>
-              <span className="ml-2 text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded">
-                -0.8%
-              </span>
-            </div>
-          </button>
-          <div className="flex items-center gap-2 ml-auto">
-            <div className="bg-neutral-800/60 backdrop-blur-sm rounded-md p-1 flex border border-neutral-600">
+        <div className="ml-auto flex items-center gap-0.5 rounded-[3px] border border-line p-0.5">
+          {TIMEFRAMES.map((t) => {
+            const active = duration === t.value;
+            return (
               <button
-                className={`px-3 py-2 rounded text-sm font-medium transition ${
-                  duration === Duration.candles_1m
-                    ? "bg-neutral-600 text-neutral-50"
-                    : "text-neutral-300 hover:text-neutral-50"
+                key={t.value}
+                onClick={() => setDuration(t.value)}
+                aria-current={active ? "true" : undefined}
+                className={`num rounded-[2px] px-2.5 py-1 text-[12px] font-medium transition-colors ${
+                  active ? "bg-raised text-ink" : "text-ink-faint hover:text-ink"
                 }`}
-                disabled={duration === Duration.candles_1m}
-                onClick={() => setDuration(Duration.candles_1m)}
               >
-                1m
+                {t.label}
               </button>
-              <button
-                className={`px-3 py-2 rounded text-sm font-medium transition ${
-                  duration === Duration.candles_1d
-                    ? "bg-neutral-600 text-neutral-50"
-                    : "text-neutral-300 hover:text-neutral-50"
-                }`}
-                disabled={duration === Duration.candles_1d}
-                onClick={() => setDuration(Duration.candles_1d)}
-              >
-                1d
-              </button>
-              <button
-                className={`px-3 py-2 rounded text-sm font-medium transition ${
-                  duration === Duration.candles_1w
-                    ? "bg-neutral-600 text-neutral-50"
-                    : "text-neutral-300 hover:text-neutral-50"
-                }`}
-                disabled={duration === Duration.candles_1w}
-                onClick={() => setDuration(Duration.candles_1w)}
-              >
-                1w
-              </button>
-            </div>
-          </div>
+            );
+          })}
         </div>
 
-        <div className="flex-grow grid grid-cols-12 gap-4 h-[calc(100vh-120px)]">
-          <div className="col-span-12 md:col-span-2 order-2 md:order-1 overflow-auto h-full">
-            <div className="bg-neutral-900/80 backdrop-blur-xl rounded-lg border border-neutral-600 p-4 h-full">
-              <h3 className="text-neutral-50 text-sm font-medium mb-4 flex justify-between items-center">
-                <span>Market Data</span>
-                <span className="text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded">Live</span>
-              </h3>
-              <AskBids symbol={symbol} />
-            </div>
+        <button
+          onClick={signOut}
+          className="text-[13px] text-ink-faint transition-colors hover:text-ink"
+        >
+          Sign out
+        </button>
+      </header>
+
+      {/* gap-px over a line-coloured background: the 1px gaps ARE the dividers,
+          so no panel carries its own border. */}
+      <div className="grid min-h-0 flex-1 gap-px bg-line lg:grid-cols-[248px_1fr_320px]">
+        <aside className="order-2 min-h-0 overflow-auto bg-surface lg:order-1">
+          <div className="flex items-center justify-between border-b border-line px-3 py-2.5">
+            <h2 className="label">Order book</h2>
+            <span className="flex items-center gap-1.5 text-[10px] text-ink-faint">
+              <span className="h-1.5 w-1.5 rounded-full bg-long" />
+              live
+            </span>
           </div>
+          <AskBids symbol={symbol} />
+        </aside>
 
-          <div className="col-span-12 md:col-span-10 order-1 md:order-2 flex overflow-hidden h-[calc(100vh-130px)]">
-            <div className="w-full h-full md:w-3/4 flex flex-col gap-4 pr-4">
-              <div className="h-[65%] flex flex-col">
-                <ChartComponent
-                  symbol={symbol}
-                  duration={duration}
-                  onPriceUpdate={setPrices}
-                />
-              </div>
-
-              <div className="h-[35%]">
-                <OrdersPanel />
-              </div>
-            </div>
-
-            <div className="w-full h-full md:w-1/4">
-              <BuySell
-                symbol={symbol}
-                askPrice={toDisplayPrice(prices.askPrice)}
-                bidPrice={toDisplayPrice(prices.bidPrice)}
-              />
-            </div>
+        <section className="order-1 flex min-h-0 flex-col gap-px bg-line lg:order-2">
+          <div className="min-h-0 flex-[3] bg-surface">
+            <ChartComponent
+              symbol={symbol}
+              duration={duration}
+              onPriceUpdate={setPrices}
+            />
           </div>
-        </div>
+          <div className="min-h-0 flex-[2] overflow-auto bg-surface">
+            <OrdersPanel />
+          </div>
+        </section>
+
+        <aside className="order-3 min-h-0 overflow-auto bg-surface">
+          <BuySell
+            symbol={symbol}
+            askPrice={toDisplayPrice(prices.askPrice)}
+            bidPrice={toDisplayPrice(prices.bidPrice)}
+          />
+        </aside>
       </div>
     </div>
   );

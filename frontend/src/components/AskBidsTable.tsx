@@ -48,16 +48,16 @@ export default function AskBids({ symbol }: { symbol?: SYMBOL }) {
   }, []);
 
   return (
-    <div className="w-full">
+    <div className="w-full px-3 pb-3">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-xs text-neutral-400 border-b border-neutral-600/40">
+          <tr className="label border-b border-line">
             <th className="py-3 text-left font-medium">Symbol</th>
             <th className="py-3 text-right font-medium">Bid</th>
             <th className="py-3 text-right font-medium">Ask</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-600/20">
+        <tbody className="divide-y divide-line">
           {Object.values(bid_asks).map((item) => (
             <tr
               key={item.symbol}

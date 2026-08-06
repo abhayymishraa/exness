@@ -169,10 +169,10 @@ export default function BuySell({
 
   return (
     <aside
-      className="w-full rounded-lg border border-neutral-600 bg-neutral-900/80 backdrop-blur-xl text-neutral-50 shadow-sm h-full flex flex-col"
+      className="w-full h-full flex flex-col bg-surface text-ink"
       aria-label="Trade ticket"
     >
-      <div className="flex border-b border-neutral-600/40">
+      <div className="flex border-b border-line">
         <button
           onClick={() => setActiveTab("buy")}
           className={`flex-1 py-3 text-center font-medium text-sm transition ${
@@ -201,14 +201,14 @@ export default function BuySell({
             <h2 className="text-sm font-medium text-neutral-50">
               {activeTab === "buy" ? "Buy Order" : "Sell Order"}
             </h2>
-            <span className="rounded-md border border-neutral-600 bg-neutral-800/60 backdrop-blur-sm px-3 py-1 text-xs text-neutral-300">
+            <span className="rounded-md border border-neutral-600 bg-neutral-800/60 px-3 py-1 text-xs text-neutral-300">
               {orderType === "market" ? "Market" : "Limit"}
             </span>
           </div>
 
           <div className="mt-3 flex items-center gap-3">
             {currentAsset ? (
-              <div className="flex items-center gap-3 p-3 bg-neutral-800/60 backdrop-blur-sm rounded-md border border-neutral-600">
+              <div className="flex items-center gap-3 p-3 bg-neutral-800/60 rounded-md border border-neutral-600">
                 <img
                   src={currentAsset.imageUrl}
                   alt={currentAsset.name}
@@ -226,7 +226,7 @@ export default function BuySell({
                 {symbol}
               </div>
             )}
-            <div className="text-xs ml-auto bg-neutral-800/60 backdrop-blur-sm px-3 py-2 rounded-md border border-neutral-600">
+            <div className="text-xs ml-auto bg-neutral-800/60 px-3 py-2 rounded-md border border-neutral-600">
               <span className="text-neutral-300">Balance:</span>
               <span className="text-green-400 font-medium ml-2">
                 ${toDisplayPriceUSD(userBalance)} USD
@@ -236,7 +236,7 @@ export default function BuySell({
         </header>
 
         <section className="grid grid-cols-2 gap-3 mt-4" aria-label="Prices">
-          <div className="rounded-lg border border-neutral-600 bg-neutral-800/60 backdrop-blur-sm p-3 relative overflow-hidden">
+          <div className="rounded-lg border border-neutral-600 bg-neutral-800/60 p-3 relative overflow-hidden">
             <div className="flex items-center justify-between">
               <div className="text-sm text-neutral-400">Sell Price</div>
               <div className="text-xs bg-[#EB483F]/20 text-[#EB483F] px-2 py-1 rounded">
@@ -249,7 +249,7 @@ export default function BuySell({
             </div>
             <div className="absolute w-1 h-full bg-[#EB483F]/40 left-0 top-0"></div>
           </div>
-          <div className="rounded-lg border border-neutral-600 bg-neutral-800/60 backdrop-blur-sm p-3 relative overflow-hidden">
+          <div className="rounded-lg border border-neutral-600 bg-neutral-800/60 p-3 relative overflow-hidden">
             <div className="flex items-center justify-between">
               <div className="text-sm text-neutral-400">Buy Price</div>
               <div className="text-xs bg-[#158BF9]/20 text-[#158BF9] px-2 py-1 rounded">
@@ -265,7 +265,7 @@ export default function BuySell({
         </section>
 
         <section className="mt-4" aria-label="Risk indicator">
-          <div className="bg-neutral-800/60 backdrop-blur-sm border border-neutral-600 rounded-md p-3">
+          <div className="bg-neutral-800/60 border border-neutral-600 rounded-md p-3">
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
                 <svg

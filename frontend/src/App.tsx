@@ -1,23 +1,21 @@
-import { Route } from "react-router";
-import { BrowserRouter, Routes } from "react-router";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Signin from "./pages/Singin";
 import Signup from "./pages/Signup";
 import Trading from "./pages/Trading";
-import "aos/dist/aos.css";
 import ExnessLanding from "./pages/Homepage";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
-    <div className="min-h-screen bg-[#0c1418] text-white">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<ExnessLanding />} />
-          <Route path="/signin" element={<Signin />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/trading" element={<Trading />} />
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<ExnessLanding />} />
+        <Route path="/signin" element={<Signin />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/trading" element={<Trading />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
