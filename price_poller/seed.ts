@@ -174,6 +174,24 @@ async function initializeTimescale() {
     );
   `);
 
+  // Raw ticks arrive at ~230 MB/day and never stop. Compress them after a day
+  // (~10x on this shape), then drop them after 90 days. 90 is not arbitrary:
+  // candles_1d refreshes over a 2-month window, so dropping raw rows any
+  // sooner would blank out already-materialised daily candles.
+  await client.query(`
+    ALTER TABLE "Trade" SET (
+      timescaledb.compress,
+      timescaledb.compress_segmentby = 'symbol',
+      timescaledb.compress_orderby   = 'timestamp DESC'
+    );
+  `);
+  await client.query(`
+    SELECT add_compression_policy('"Trade"', INTERVAL '1 day', if_not_exists => TRUE);
+  `);
+  await client.query(`
+    SELECT add_retention_policy('"Trade"', INTERVAL '90 days', if_not_exists => TRUE);
+  `);
+
   await client.end();
   console.log("TimescaleDB hypertable + continuous aggregates initialized!");
 }
