@@ -26,9 +26,12 @@ export function NumberTicker({
 }: NumberTickerProps) {
   const ref = useRef<HTMLSpanElement>(null)
   const motionValue = useMotionValue(direction === "down" ? value : startValue)
+  // Retuned from the registry default (damping 60 / stiffness 100), which took
+  // ~9s to settle. For most of that the reader sees a number that is simply
+  // wrong ("$4,818" under a label that says 5,000). ~0.8s to rest instead.
   const springValue = useSpring(motionValue, {
-    damping: 60,
-    stiffness: 100,
+    damping: 30,
+    stiffness: 220,
   })
   const isInView = useInView(ref, { once: true, margin: "0px" })
 

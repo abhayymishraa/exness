@@ -16,6 +16,25 @@ import type { Trade } from "../components/AskBidsTable";
  * the product shot is a genuine screenshot of the live terminal.
  */
 
+/**
+ * NumberTicker springs toward its value and has no reduced-motion branch of its
+ * own, so render the settled figure directly when motion is not wanted.
+ */
+function Stat({ value, decimals = 0 }: { value: number; decimals?: number }) {
+  const reduce = useReducedMotion();
+  if (reduce) {
+    return (
+      <>
+        {value.toLocaleString("en-US", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        })}
+      </>
+    );
+  }
+  return <NumberTicker value={value} decimalPlaces={decimals} />;
+}
+
 /** Live liquidation preview: BTC at 10x, driven by the same feed. */
 function LiveLiquidation() {
   const [bid, setBid] = useState(0);
@@ -27,7 +46,7 @@ function LiveLiquidation() {
   return (
     <p className="num mt-3 text-[26px] font-medium leading-none text-short">
       {bid > 0 ? (
-        liq.toLocaleString("en-US", { minimumFractionDigits: 2 })
+        liq.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       ) : (
         <span className="inline-block h-7 w-32 animate-pulse rounded-sm bg-raised align-middle" />
       )}
@@ -229,19 +248,19 @@ export default function ExnessLanding() {
                     <div>
                       <dt className="label">Spread</dt>
                       <dd className="num mt-2 text-xl font-medium">
-                        <NumberTicker value={0.02} decimalPlaces={2} />%
+                        <Stat value={0.02} decimals={2} />%
                       </dd>
                     </div>
                     <div>
                       <dt className="label">Leverage</dt>
                       <dd className="num mt-2 text-xl font-medium">
-                        <NumberTicker value={100} />x
+                        <Stat value={100} />x
                       </dd>
                     </div>
                     <div>
                       <dt className="label">Demo bal.</dt>
                       <dd className="num mt-2 text-xl font-medium">
-                        $<NumberTicker value={5000} />
+                        $<Stat value={5000} />
                       </dd>
                     </div>
                   </dl>

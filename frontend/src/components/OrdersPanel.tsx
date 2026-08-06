@@ -7,6 +7,13 @@ import {
 } from "../utils/utils";
 import { subscribePrices, type LivePrices } from "../utils/price_store";
 
+/** Cents -> a money string. Always two decimals, thousands separated. */
+const money = (cents: number) =>
+  toDisplayPriceUSD(cents).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
 interface OpenOrder {
   orderId: string;
   type: "buy" | "sell";
@@ -102,16 +109,19 @@ export default function OrdersPanel() {
         return { ...o, pnlUsd: 0 };
       }
 
+      // Long marks against the bid, short against the ask - the same sides the
+      // server closes at, so this preview equals the realised figure.
       const currentcloseprice = o.type === "buy" ? p.bid : p.ask;
-      // Dynamic P&L based on side: buy uses current buyPrice; sell uses current sellPrice
-      const pnlInCents = calculatePnlCents({
+      const raw = calculatePnlCents({
         side: o.type,
         openPrice: o.openPrice,
         closePrice: currentcloseprice,
         marginCents: o.margin,
         leverage: o.leverage,
       });
-      return { ...o, pnlUsd: pnlInCents };
+      // Clamp to match closeOrder: a position cannot lose more than its margin,
+      // so an unclamped preview would promise a loss the close never takes.
+      return { ...o, pnlUsd: Math.max(raw, -o.margin) };
     });
   }, [openOrders, latestPrices]);
 
@@ -267,7 +277,7 @@ export default function OrdersPanel() {
                             {order.type === "buy" ? "LONG" : "SHORT"}
                           </td>
                           <td className="py-3 px-3 text-right text-ink">
-                            {toDisplayPriceUSD(order.margin)} USD
+                            {money(order.margin)} USD
                           </td>
                           <td className="py-3 px-3 text-right text-ink">
                             x{order.leverage}
@@ -373,7 +383,7 @@ export default function OrdersPanel() {
                             }`}
                           >
                             {order.pnlUsd >= 0 ? "+" : ""}
-                            {toDisplayPriceUSD(order.pnlUsd)} USD
+                            {money(order.pnlUsd)} USD
                           </td>
                           <td className="py-3 px-3 text-right">
                             <button
@@ -436,7 +446,7 @@ export default function OrdersPanel() {
                       {order.type === "buy" ? "LONG" : "SHORT"}
                     </td>
                     <td className="py-3 px-3 text-right text-ink">
-                      {toDisplayPriceUSD(order.margin)} USD
+                      {money(order.margin)} USD
                     </td>
                     <td className="py-3 px-3 text-right text-ink">
                       ${toDisplayPrice(order.openPrice)}
@@ -451,8 +461,8 @@ export default function OrdersPanel() {
                           : "text-[#EB483F]"
                       }`}
                     >
-                      {toDisplayPriceUSD(order.pnl) >= 0 ? "+" : ""}
-                      {toDisplayPriceUSD(order.pnl)} USD
+                      {order.pnl >= 0 ? "+" : ""}
+                      {money(order.pnl)} USD
                     </td>
                   </tr>
                 ))}
