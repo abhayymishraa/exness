@@ -55,7 +55,12 @@ async function startpriceuddate() {
     await redis.subscribe(asset, (msg: string) => {
       const data = JSON.parse(msg);
       PRICESTORE[asset] = { ask: data.askPrice, bid: data.bidPrice };
-      checkOpenPositions(asset, { ask: data.askPrice, bid: data.bidPrice });
+      // Never let a failed close kill the process: this runs inside a redis
+      // subscriber callback, so an unhandled rejection is fatal in Bun.
+      checkOpenPositions(asset, {
+        ask: data.askPrice,
+        bid: data.bidPrice,
+      }).catch((e) => console.error("position check failed:", e));
     });
   });
   setInterval(() => {

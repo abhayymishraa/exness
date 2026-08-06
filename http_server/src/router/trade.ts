@@ -3,7 +3,7 @@ import { usermiddleware } from "../middleware";
 import { CLOSEDORDERS, ORDERS, PRICESTORE, USERS } from "../data";
 import { tradeSchema } from "../types/userschema";
 import { v4 } from "uuid";
-import { USD_SCALE, calculatePnlCents } from "../utils/utils";
+import { PRICE_SCALE, USD_SCALE, calculatePnlCents } from "../utils/utils";
 import { closeOrder } from "../utils/tradeUtils";
 import { saveBalance, saveOrder } from "../store";
 
@@ -55,6 +55,39 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
         : // Formula for short: close = open * (1 + 1 / leverage)
           Math.floor((openPrice as number) * (1 + 1 / leverage));
 
+    // An exit already on the wrong side of entry triggers on the next tick, so
+    // the position opens and instantly closes at a loss labelled "take_profit".
+    if (takeProfit !== undefined) {
+      const bad =
+        type === "buy"
+          ? takeProfit * PRICE_SCALE <= openPrice
+          : takeProfit * PRICE_SCALE >= openPrice;
+      if (bad) {
+        user.balance.usd_balance += margin;
+        return res.status(411).json({
+          message:
+            type === "buy"
+              ? "Take profit must be above the entry price"
+              : "Take profit must be below the entry price",
+        });
+      }
+    }
+    if (stopLoss !== undefined) {
+      const bad =
+        type === "buy"
+          ? stopLoss * PRICE_SCALE >= openPrice
+          : stopLoss * PRICE_SCALE <= openPrice;
+      if (bad) {
+        user.balance.usd_balance += margin;
+        return res.status(411).json({
+          message:
+            type === "buy"
+              ? "Stop loss must be below the entry price"
+              : "Stop loss must be above the entry price",
+        });
+      }
+    }
+
     const order = {
       type,
       margin,
@@ -67,12 +100,23 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
       liquidationPrice,
     };
 
+    // Persist BEFORE the order becomes visible to checkOpenPositions. The old
+    // order (memory first, then await) let a price tick close an order whose
+    // row was still being written: the close path's prisma.order.delete threw
+    // P2025 and the unhandled rejection killed the API process. Reproducible by
+    // opening a position whose take-profit is already through.
+    try {
+      await saveOrder(orderid, userid, order);
+      await saveBalance(userid, user.balance.usd_balance);
+    } catch (e) {
+      user.balance.usd_balance += margin; // the margin was debited above
+      throw e;
+    }
+
     if (!ORDERS[userid]) {
       ORDERS[userid] = {};
     }
     ORDERS[userid][orderid] = order;
-    await saveOrder(orderid, userid, order);
-    await saveBalance(userid, user.balance.usd_balance);
 
     return res.status(200).json({ orderId: orderid });
   } catch (e) {

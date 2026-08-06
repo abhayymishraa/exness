@@ -9,13 +9,15 @@ const SYMBOLS: SYMBOL[] = ["BTC", "ETH", "SOL"];
 type Row = { bid: number; ask: number; dir: "up" | "down" | null };
 
 /**
- * The landing page's proof of life. Rather than a screenshot or invented
- * figures, it subscribes to the same feed the terminal uses — the numbers a
- * visitor sees are the ones they would trade against a second later.
+ * The landing page's proof of life: it subscribes to the same feed the
+ * terminal uses, so the numbers a visitor sees are the ones they would trade
+ * against a second later. The status dot reflects real state, green only once
+ * data has actually arrived.
  */
 export default function LiveTicker() {
   const [rows, setRows] = useState<Record<string, Row>>({});
   const prev = useRef<Record<string, number>>({});
+  const live = Object.keys(rows).length > 0;
 
   useEffect(() => {
     const manager = Signalingmanager.getInstance();
@@ -29,7 +31,12 @@ export default function LiveTicker() {
           [symbol]: {
             bid,
             ask: toDisplayPrice(t.askPrice),
-            dir: last === undefined || bid === last ? null : bid > last ? "up" : "down",
+            dir:
+              last === undefined || bid === last
+                ? null
+                : bid > last
+                  ? "up"
+                  : "down",
           },
         }));
       }),
@@ -38,51 +45,70 @@ export default function LiveTicker() {
   }, []);
 
   return (
-    <ul className="grid grid-cols-3 divide-x divide-line border-y border-line">
-      {SYMBOLS.map((symbol) => {
-        const row = rows[symbol];
-        return (
-          <li key={symbol} className="px-3 py-4 sm:px-5">
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="label">{symbol}</span>
-              {row?.dir && (
-                <span
-                  aria-hidden
-                  className={`text-[10px] leading-none ${
-                    row.dir === "up" ? "text-long" : "text-short"
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <span className="label">Live market</span>
+        <span className="flex items-center gap-1.5 text-[11px] text-ink-faint">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${live ? "bg-long" : "bg-ink-faint"}`}
+          />
+          {live ? "streaming" : "connecting"}
+        </span>
+      </div>
+
+      <ul className="grid grid-cols-3 divide-x divide-line border-y border-line">
+        {SYMBOLS.map((symbol) => {
+          const row = rows[symbol];
+          return (
+            <li key={symbol} className="px-3 py-4 sm:px-5">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="label">{symbol}</span>
+                {row?.dir && (
+                  <span
+                    aria-hidden
+                    className={`text-[10px] leading-none ${
+                      row.dir === "up" ? "text-long" : "text-short"
+                    }`}
+                  >
+                    {row.dir === "up" ? "▲" : "▼"}
+                  </span>
+                )}
+              </div>
+
+              {row ? (
+                <p
+                  className={`num mt-2 text-lg font-medium tabular-nums transition-colors duration-500 sm:text-xl ${
+                    row.dir === "up"
+                      ? "text-long"
+                      : row.dir === "down"
+                        ? "text-short"
+                        : "text-ink"
                   }`}
                 >
-                  {row.dir === "up" ? "▲" : "▼"}
-                </span>
+                  {row.bid.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                  })}
+                </p>
+              ) : (
+                /* Skeleton shaped like the number it replaces, not a spinner. */
+                <div
+                  className="mt-2 h-7 w-24 animate-pulse rounded-sm bg-raised"
+                  aria-label={`Loading ${symbol} price`}
+                />
               )}
-            </div>
 
-            {row ? (
-              <p
-                className={`num mt-2 text-lg font-medium tabular-nums transition-colors duration-500 sm:text-xl ${
-                  row.dir === "up"
-                    ? "text-long"
-                    : row.dir === "down"
-                      ? "text-short"
-                      : "text-ink"
-                }`}
-              >
-                {row.bid.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              <p className="num mt-1 whitespace-nowrap text-[11px] text-ink-faint">
+                {row
+                  ? `ask ${row.ask.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+                  : " "}
               </p>
-            ) : (
-              /* Skeleton shaped like the number it replaces, not a spinner. */
-              <div
-                className="mt-2 h-7 w-28 animate-pulse rounded-sm bg-raised"
-                aria-label={`Loading ${symbol} price`}
-              />
-            )}
-
-            <p className="num mt-1 whitespace-nowrap text-[11px] text-ink-faint">
-              {row ? `ask ${row.ask.toLocaleString("en-US", { minimumFractionDigits: 2 })}` : " "}
-            </p>
-          </li>
-        );
-      })}
-    </ul>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-3 text-[12px] leading-relaxed text-ink-faint">
+        Straight off the terminal's own WebSocket.
+      </p>
+    </div>
   );
 }

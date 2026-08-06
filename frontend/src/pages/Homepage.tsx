@@ -1,12 +1,67 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useReducedMotion } from "motion/react";
 import LiveTicker from "../components/LiveTicker";
+import Reveal from "../components/Reveal";
+import { NumberTicker } from "../components/magicui/number-ticker";
+import { FlickeringGrid } from "../components/magicui/flickering-grid";
+import { Signalingmanager } from "../utils/subscription_manager";
+import { toDisplayPrice } from "../utils/utils";
+import type { Trade } from "../components/AskBidsTable";
 
 /**
- * Landing page. Reads as an instrument panel rather than a marketing page:
- * hairline rules instead of cards, one accent, mono reserved for figures, and
- * a live feed where the hero illustration would normally sit.
+ * Landing page. Precision-instrument language, dark-locked (the product is a
+ * terminal). The hero visual is the real feed, the storytelling images are our
+ * generated clay-diorama world (prompted with these exact brand tokens), and
+ * the product shot is a genuine screenshot of the live terminal.
  */
+
+/** Live liquidation preview: BTC at 10x, driven by the same feed. */
+function LiveLiquidation() {
+  const [bid, setBid] = useState(0);
+  useEffect(() => {
+    const manager = Signalingmanager.getInstance();
+    return manager.watch("BTC", (t: Trade) => setBid(toDisplayPrice(t.bidPrice)));
+  }, []);
+  const liq = bid * (1 - 1 / 10);
+  return (
+    <p className="num mt-3 text-[26px] font-medium leading-none text-short">
+      {bid > 0 ? (
+        liq.toLocaleString("en-US", { minimumFractionDigits: 2 })
+      ) : (
+        <span className="inline-block h-7 w-32 animate-pulse rounded-sm bg-raised align-middle" />
+      )}
+    </p>
+  );
+}
+
+const JOURNEY = [
+  {
+    img: "/img/world-1.webp",
+    alt: "Clay model of an open pavilion streaming blue threads of market data",
+    span: "lg:col-span-5",
+    title: "The feed",
+    body: "Binance spot trades stream in over WebSocket, tick by tick.",
+  },
+  {
+    img: "/img/world-2.webp",
+    alt: "Clay model of a geared engine room turning blue threads into candle blocks",
+    span: "lg:col-span-4",
+    title: "The engine room",
+    body: "TimescaleDB rolls the raw ticks into candles as they arrive.",
+  },
+  {
+    img: "/img/world-3.webp",
+    alt: "Clay model of a trading desk with a curved chart wall and warm lamp",
+    span: "lg:col-span-3",
+    title: "The desk",
+    body: "You trade against the same feed you watch.",
+  },
+];
+
 export default function ExnessLanding() {
+  const reduce = useReducedMotion();
+
   return (
     <div className="min-h-dvh bg-base text-ink">
       <div aria-hidden className="grid-field pointer-events-none fixed inset-0" />
@@ -27,8 +82,6 @@ export default function ExnessLanding() {
             <span className="text-[15px] font-semibold tracking-tight">Exness</span>
           </Link>
 
-          {/* Secondary links collapse below sm — at 390px all three wrapped and
-              collided with the wordmark. */}
           <nav className="flex items-center gap-1 text-sm">
             <Link
               to="/trading"
@@ -51,89 +104,186 @@ export default function ExnessLanding() {
           </nav>
         </header>
 
-        <main id="main" className="flex flex-1 flex-col justify-center py-12 sm:py-16">
-          {/* Asymmetric: headline left, live data rail right — instead of the
-              centred hero over three equal cards. */}
-          <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-16">
+        <main id="main">
+          <section className="grid gap-12 py-14 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
             <div>
-              <p className="label rise" style={{ animationDelay: "40ms" }}>
-                BTC · ETH · SOL — marked to Binance spot
-              </p>
-
               <h1
-                className="rise mt-5 text-[clamp(2.5rem,5.5vw,4rem)] font-semibold"
-                style={{ animationDelay: "100ms" }}
+                className="rise text-[clamp(2.5rem,5.5vw,4rem)] font-semibold"
+                style={{ animationDelay: "40ms" }}
               >
                 Leverage, without the ceremony.
               </h1>
-
               <p
-                className="rise mt-6 max-w-[52ch] text-[17px] leading-relaxed text-ink-dim"
-                style={{ animationDelay: "170ms" }}
+                className="rise mt-6 max-w-[46ch] text-[17px] leading-relaxed text-ink-dim"
+                style={{ animationDelay: "120ms" }}
               >
-                Open a position in two clicks. Fills are priced off the live
-                Binance book, and your stop, target and liquidation level are
-                calculated before you confirm — not after.
+                Two clicks to a position. Stop, target and liquidation price are
+                computed before you confirm.
               </p>
-
               <div
                 className="rise mt-9 flex flex-wrap items-center gap-3"
-                style={{ animationDelay: "240ms" }}
+                style={{ animationDelay: "200ms" }}
               >
                 <Link to="/signup" className="btn btn-primary px-6 py-3">
-                  Open an account
+                  Open account
                 </Link>
                 <Link to="/trading" className="btn btn-ghost px-6 py-3">
                   Try the terminal
                 </Link>
               </div>
-
-              <p
-                className="rise mt-5 text-[13px] text-ink-faint"
-                style={{ animationDelay: "300ms" }}
-              >
-                Demo balance of $5,000. No card, no deposit.
-              </p>
             </div>
 
-            <div className="rise" style={{ animationDelay: "360ms" }}>
-              <div className="mb-3 flex items-center justify-between">
-                <span className="label">Live market</span>
-                <span className="flex items-center gap-1.5 text-[11px] text-ink-faint">
-                  <span className="h-1.5 w-1.5 rounded-full bg-long" />
-                  streaming
-                </span>
-              </div>
+            <div className="rise relative" style={{ animationDelay: "300ms" }}>
+              {/* Ambient data-field behind the live panel. Motivated: it is the
+                  visual of ticks arriving. Hidden under reduced motion; the
+                  static masked grid beneath still reads. */}
+              {!reduce && (
+                <FlickeringGrid
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-6 -z-10 [mask-image:radial-gradient(ellipse_75%_70%_at_50%_40%,#000_30%,transparent_75%)]"
+                  squareSize={3}
+                  gridGap={7}
+                  color="#158bf9"
+                  maxOpacity={0.16}
+                  flickerChance={0.08}
+                />
+              )}
               <LiveTicker />
-              <p className="mt-3 text-[12px] leading-relaxed text-ink-faint">
-                Streaming over the same WebSocket the terminal uses.
-              </p>
             </div>
-          </div>
+          </section>
 
-          {/* Grid gap-px over a line-coloured background: the dividers ARE the
-              gaps, so no borders or shadows are needed per cell. */}
-          <ul className="mt-20 grid gap-px border border-line bg-line sm:grid-cols-3">
-            {[
-              {
-                k: "Margin and leverage, separately",
-                d: "Size the position and pick the multiplier independently, so exposure is never a guess.",
-              },
-              {
-                k: "Liquidation price upfront",
-                d: "The level your position closes at is computed and shown before you open it.",
-              },
-              {
-                k: "Candles from trades",
-                d: "One-minute bars aggregate continuously off the trade stream rather than sampling on request.",
-              },
-            ].map((f) => (
-              <li key={f.k} className="bg-surface p-6">
-                <h2 className="text-[15px] font-semibold text-ink">{f.k}</h2>
-                <p className="mt-2 text-[13px] leading-relaxed text-ink-dim">{f.d}</p>
-              </li>
-            ))}
-          </ul>
+          <section className="border-t border-line py-16 sm:py-20">
+            <Reveal>
+              <h2 className="max-w-[24ch] text-[clamp(1.6rem,3.2vw,2.4rem)] font-semibold">
+                From raw feed to filled order.
+              </h2>
+            </Reveal>
+            <div className="mt-10 grid gap-10 lg:grid-cols-12 lg:gap-6">
+              {JOURNEY.map((step, i) => (
+                <Reveal key={step.title} delay={i * 0.09} className={step.span}>
+                  <img
+                    src={step.img}
+                    alt={step.alt}
+                    loading="lazy"
+                    className="w-full rounded-[4px]"
+                  />
+                  <h3 className="mt-4 text-[15px] font-semibold">{step.title}</h3>
+                  <p className="mt-1.5 max-w-[38ch] text-[13px] leading-relaxed text-ink-dim">
+                    {step.body}
+                  </p>
+                </Reveal>
+              ))}
+            </div>
+          </section>
+
+          <section className="border-t border-line py-16 sm:py-20">
+            <Reveal>
+              <h2 className="max-w-[26ch] text-[clamp(1.6rem,3.2vw,2.4rem)] font-semibold">
+                Real mechanics, demo stakes.
+              </h2>
+            </Reveal>
+
+            <div className="mt-10 grid gap-px bg-line lg:grid-cols-12">
+              <Reveal className="bg-surface p-5 lg:col-span-7">
+                <img
+                  src="/img/terminal.webp"
+                  alt="The Exness terminal: order book, live candles and an open BTC long with its liquidation price"
+                  loading="lazy"
+                  className="w-full rounded-[4px] border border-line"
+                />
+                <p className="mt-4 text-[13px] leading-relaxed text-ink-dim">
+                  The terminal, as it runs: live book, exchange-style candles,
+                  one-click positions.
+                </p>
+              </Reveal>
+
+              <div className="grid gap-px bg-line lg:col-span-5">
+                <Reveal
+                  delay={0.06}
+                  className="relative overflow-hidden bg-surface p-5"
+                >
+                  <img
+                    src="/img/world-4.webp"
+                    alt=""
+                    aria-hidden
+                    loading="lazy"
+                    className="pointer-events-none absolute -right-8 -top-2 w-44 opacity-45"
+                  />
+                  <h3 className="text-[15px] font-semibold">
+                    Liquidation, before you commit.
+                  </h3>
+                  <p className="mt-1.5 max-w-[30ch] text-[13px] leading-relaxed text-ink-dim">
+                    A BTC long at 10x would liquidate at, right now:
+                  </p>
+                  <LiveLiquidation />
+                  <p className="num mt-3 text-[11px] text-ink-faint">
+                    entry x (1 - 1/leverage)
+                  </p>
+                </Reveal>
+
+                <Reveal
+                  delay={0.12}
+                  className="bg-surface bg-gradient-to-br from-accent-sunk/25 to-transparent p-5"
+                >
+                  <dl className="grid grid-cols-3 gap-4">
+                    <div>
+                      <dt className="label">Spread</dt>
+                      <dd className="num mt-2 text-xl font-medium">
+                        <NumberTicker value={0.02} decimalPlaces={2} />%
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="label">Leverage</dt>
+                      <dd className="num mt-2 text-xl font-medium">
+                        <NumberTicker value={100} />x
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="label">Demo bal.</dt>
+                      <dd className="num mt-2 text-xl font-medium">
+                        $<NumberTicker value={5000} />
+                      </dd>
+                    </div>
+                  </dl>
+                </Reveal>
+
+                <Reveal delay={0.18} className="bg-surface p-5">
+                  <h3 className="text-[15px] font-semibold">
+                    Candles the way venues draw them.
+                  </h3>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-ink-dim">
+                    Trade-priced, exchange-time buckets, in-progress candle
+                    included. The same kline model Binance streams.
+                  </p>
+                </Reveal>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid items-center gap-10 border-t border-line py-16 sm:py-20 lg:grid-cols-[1.1fr_0.9fr]">
+            <Reveal>
+              <h2 className="max-w-[22ch] text-[clamp(1.6rem,3.2vw,2.4rem)] font-semibold">
+                Start with a $5,000 demo balance.
+              </h2>
+              <p className="mt-4 max-w-[44ch] text-[15px] leading-relaxed text-ink-dim">
+                No card, no deposit. Positions mark against live prices, and no
+                real funds ever move.
+              </p>
+              <div className="mt-8">
+                <Link to="/signup" className="btn btn-primary px-6 py-3">
+                  Open account
+                </Link>
+              </div>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <img
+                src="/img/world-5.webp"
+                alt="Clay model of a quiet terminus where a blue thread settles into a bowl beside stacked green and red discs"
+                loading="lazy"
+                className="mx-auto w-full max-w-md rounded-[4px]"
+              />
+            </Reveal>
+          </section>
         </main>
 
         <footer className="flex flex-col gap-3 border-t border-line py-7 text-[12px] text-ink-faint sm:flex-row sm:items-center sm:justify-between">

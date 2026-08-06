@@ -117,7 +117,9 @@ export function moveOrderToClosed(
   usdBalance: number,
 ) {
   return prisma.$transaction([
-      prisma.order.delete({ where: { id } }),
+      // deleteMany, not delete: delete throws P2025 when the row is absent,
+      // and that rejection used to take the whole process down.
+      prisma.order.deleteMany({ where: { id } }),
       prisma.closedOrder.create({
         data: {
           id,
