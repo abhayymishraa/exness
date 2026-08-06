@@ -109,7 +109,7 @@ export default function Trading() {
 
       {/* gap-px over a line-coloured background: the 1px gaps ARE the dividers,
           so no panel carries its own border. */}
-      <div className="grid min-h-0 flex-1 gap-px bg-line lg:grid-cols-[248px_1fr_320px]">
+      <div className="grid min-h-0 flex-1 gap-px bg-line lg:grid-cols-[280px_1fr_344px]">
         <aside className="order-2 min-h-0 overflow-auto bg-surface lg:order-1">
           <div className="flex items-center justify-between border-b border-line px-3 py-2.5">
             <h2 className="label">Order book</h2>

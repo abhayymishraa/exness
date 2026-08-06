@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type SYMBOL } from "../utils/constants";
 import { toDisplayPrice } from "../utils/utils";
 import { subscribePrices, type LivePrices } from "../utils/price_store";
@@ -9,85 +9,93 @@ export interface Trade {
   symbol: SYMBOL;
 }
 
+const SYMBOLS = ["BTC", "ETH", "SOL"] as const;
+type Sym = (typeof SYMBOLS)[number];
 
-const imageUrl = {
-
-  SOL: "https://i.postimg.cc/9MhDvsK9/b2f0c70f-4fb2-4472-9fe7-480ad1592421.png",
-  ETH: "https://i.postimg.cc/gcKhPkY2/3a8c9fe6-2a76-4ace-aa07-415d994de6f0.png",
-  BTC: "https://i.postimg.cc/TPh0K530/87496d50-2408-43e1-ad4c-78b47b448a6a.png",
+type Quote = { bid: number; ask: number; dir: "up" | "down" | null };
+const EMPTY: Record<Sym, Quote> = {
+  BTC: { bid: 0, ask: 0, dir: null },
+  ETH: { bid: 0, ask: 0, dir: null },
+  SOL: { bid: 0, ask: 0, dir: null },
 };
 
 export default function AskBids({ symbol }: { symbol?: SYMBOL }) {
-  const [bid_asks, setBidsAsks] = useState({
-    SOL: {
-      bids: 0,
-      asks: 0,
-      symbol: "SOL",
-    },
-    ETH: {
-      bids: 0,
-      asks: 0,
-      symbol: "ETH",
-    },
-    BTC: {
-      bids: 0,
-      asks: 0,
-      symbol: "BTC",
-    },
-  });
+  const [quotes, setQuotes] = useState<Record<Sym, Quote>>(EMPTY);
+  const prev = useRef<Record<string, number>>({});
 
   useEffect(() => {
+    // The previous version stored the ask under `bids` and the bid under
+    // `asks`, then swapped them back in the markup. It rendered correctly by
+    // accident and would mislead anyone touching either half.
     const unsubscribe = subscribePrices((prices: LivePrices) => {
-      setBidsAsks({
-        BTC: { bids: toDisplayPrice(prices.BTC.ask), asks: toDisplayPrice(prices.BTC.bid), symbol: "BTC" },
-        ETH: { bids: toDisplayPrice(prices.ETH.ask), asks: toDisplayPrice(prices.ETH.bid), symbol: "ETH" },
-        SOL: { bids: toDisplayPrice(prices.SOL.ask), asks: toDisplayPrice(prices.SOL.bid), symbol: "SOL" },
+      setQuotes((current) => {
+        const next = { ...current };
+        for (const s of SYMBOLS) {
+          const bid = toDisplayPrice(prices[s].bid);
+          const last = prev.current[s];
+          prev.current[s] = bid;
+          next[s] = {
+            bid,
+            ask: toDisplayPrice(prices[s].ask),
+            dir:
+              last === undefined || bid === last ? null : bid > last ? "up" : "down",
+          };
+        }
+        return next;
       });
     });
     return () => unsubscribe();
   }, []);
 
   return (
-    <div className="w-full px-3 pb-3">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="label border-b border-line">
-            <th className="py-3 text-left font-medium">Symbol</th>
-            <th className="py-3 text-right font-medium">Bid</th>
-            <th className="py-3 text-right font-medium">Ask</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-line">
-          {Object.values(bid_asks).map((item) => (
+    <table className="w-full">
+      <thead>
+        <tr className="border-b border-line">
+          <th className="label px-2.5 py-2 text-left font-medium">Symbol</th>
+          <th className="label px-2.5 py-2 text-right font-medium">Bid</th>
+          <th className="label px-2.5 py-2 text-right font-medium">Ask</th>
+        </tr>
+      </thead>
+      <tbody>
+        {SYMBOLS.map((s) => {
+          const q = quotes[s];
+          const active = symbol === s;
+          return (
             <tr
-              key={item.symbol}
-              className={`hover:bg-neutral-800/50 transition-colors ${
-                symbol === `${item.symbol}USDT` ? "bg-neutral-800/30" : ""
+              key={s}
+              aria-current={active ? "true" : undefined}
+              className={`border-b border-line/60 transition-colors ${
+                active ? "bg-raised" : "hover:bg-raised/50"
               }`}
             >
-              <th className="py-4 text-left font-medium text-neutral-50">
-                <div className="flex items-center">
-                  <img
-                    src={imageUrl[item.symbol as keyof typeof imageUrl]}
-                    alt={item.symbol}
-                    className="h-6 w-6 rounded-full inline-block mr-3"
-                  />
-                  <div>
-                    <div className="text-sm font-semibold">{item.symbol}</div>
-                    <div className="text-xs text-neutral-400">USDT</div>
-                  </div>
-                </div>
+              <th scope="row" className="px-2.5 py-2.5 text-left">
+                <span
+                  className={`num text-[13px] font-medium ${
+                    active ? "text-accent" : "text-ink"
+                  }`}
+                >
+                  {s}
+                </span>
+                <span className="num ml-1 text-[10px] text-ink-faint">USDT</span>
               </th>
-              <td className="py-4 text-right font-mono text-[#158BF9] font-semibold">
-                {item.asks}
+              <td
+                className={`num px-2.5 py-2.5 text-right text-[13px] tabular-nums transition-colors duration-500 ${
+                  q.dir === "up"
+                    ? "text-long"
+                    : q.dir === "down"
+                      ? "text-short"
+                      : "text-ink-dim"
+                }`}
+              >
+                {q.bid ? q.bid.toLocaleString("en-US", { minimumFractionDigits: 2 }) : "—"}
               </td>
-              <td className="py-4 text-right font-mono text-[#EB483F] font-semibold">
-                {item.bids}
+              <td className="num px-2.5 py-2.5 text-right text-[13px] text-ink-dim tabular-nums">
+                {q.ask ? q.ask.toLocaleString("en-US", { minimumFractionDigits: 2 }) : "—"}
               </td>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }

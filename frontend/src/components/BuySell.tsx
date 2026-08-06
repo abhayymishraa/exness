@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import type { SYMBOL } from "../utils/constants";
@@ -12,6 +10,17 @@ import {
   toDisplayPriceUSD,
   toInternalPrice,
 } from "../utils/utils";
+
+// Must match http_server tradeSchema exactly. The UI previously offered 2x,
+// which the server rejects with "Incorrect inputs", and hid 100x, which it
+// accepts — so one button was dead and one option was unreachable.
+const LEVERAGES = [1, 5, 10, 20, 100] as const;
+
+const usd = (cents: number) =>
+  toDisplayPriceUSD(cents).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
 export default function BuySell({
   askPrice,
@@ -40,7 +49,7 @@ export default function BuySell({
     const getUserBalance = async () => {
       try {
         const response = await findUserAmount();
-        if (response && response.usd_balance) {
+        if (response && response.usd_balance !== undefined) {
           setUserBalance(response.usd_balance);
         }
       } catch (err) {
@@ -53,9 +62,7 @@ export default function BuySell({
         const assetData = await getAssetDetails();
         if (assetData.length > 0) {
           const asset = assetData.find((a) => a.symbol === symbol);
-          if (asset) {
-            setCurrentAsset(asset);
-          }
+          if (asset) setCurrentAsset(asset);
         }
       } catch (error) {
         console.error("Error loading assets:", error);
@@ -64,57 +71,52 @@ export default function BuySell({
 
     getUserBalance();
     getAssets();
-
     const balanceIntervalId = setInterval(getUserBalance, 10000);
     const assetsIntervalId = setInterval(getAssets, 30000);
-
     return () => {
       clearInterval(balanceIntervalId);
       clearInterval(assetsIntervalId);
     };
   }, [symbol]);
 
-  const estimatedTpPnlInCents = useMemo(() => {
-    if (!tpEnabled || !tpPrice || Number(tpPrice) <= 0) return 0;
+  const entry = activeTab === "buy" ? askPrice : bidPrice;
 
-    // 1. Convert all inputs to the correct scaled-integer format
-    const openPriceForCalc =
-      activeTab === "buy"
-        ? toInternalPrice(askPrice)
-        : toInternalPrice(bidPrice);
-    const closePriceForCalc = toInternalPrice(Number(tpPrice));
-    const marginForCalc = margin * 100; // Convert dollar margin to cents
-
-    // 2. Call the exact same robust function used everywhere else
+  const estimatePnl = (target: string, enabled: boolean) => {
+    if (!enabled || !target || Number(target) <= 0) return 0;
     return calculatePnlCents({
       side: activeTab,
-      openPrice: openPriceForCalc,
-      closePrice: closePriceForCalc,
-      marginCents: marginForCalc,
-      leverage: leverage,
+      openPrice: toInternalPrice(entry),
+      closePrice: toInternalPrice(Number(target)),
+      marginCents: margin * 100,
+      leverage,
     });
-  }, [tpEnabled, tpPrice, activeTab, askPrice, bidPrice, margin, leverage]);
+  };
 
-  const estimatedSlPnlInCents = useMemo(() => {
-    if (!slEnabled || !slPrice || Number(slPrice) <= 0) return 0;
+  const estimatedTpPnlInCents = useMemo(
+    () => estimatePnl(tpPrice, tpEnabled),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tpEnabled, tpPrice, activeTab, askPrice, bidPrice, margin, leverage],
+  );
+  const estimatedSlPnlInCents = useMemo(
+    () => estimatePnl(slPrice, slEnabled),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [slEnabled, slPrice, activeTab, askPrice, bidPrice, margin, leverage],
+  );
 
-    // 1. Convert all inputs to the correct scaled-integer format
-    const openPriceForCalc =
-      activeTab === "buy"
-        ? toInternalPrice(askPrice)
-        : toInternalPrice(bidPrice);
-    const closePriceForCalc = toInternalPrice(Number(slPrice));
-    const marginForCalc = margin * 100; // Convert dollar margin to cents
+  // The server computes this on open; showing the same number here is the whole
+  // "liquidation price upfront" promise. It replaces a hardcoded "Risk Level:
+  // LOW" bar pinned at 30% width, which never moved — not even at 100x.
+  const liquidation = useMemo(() => {
+    // At 1x a long liquidates only at zero and a short only at +100%, i.e. not
+    // in practice. Rendering "0.00 -100%" there is alarming and useless.
+    if (!entry || leverage <= 1) return null;
+    const price =
+      activeTab === "buy" ? entry * (1 - 1 / leverage) : entry * (1 + 1 / leverage);
+    return { price, movePct: 100 / leverage };
+  }, [entry, leverage, activeTab]);
 
-    // 2. Call the robust P&L function
-    return calculatePnlCents({
-      side: activeTab,
-      openPrice: openPriceForCalc,
-      closePrice: closePriceForCalc,
-      marginCents: marginForCalc,
-      leverage: leverage,
-    });
-  }, [slEnabled, slPrice, activeTab, askPrice, bidPrice, margin, leverage]);
+  const notional = margin * leverage;
+  const insufficient = convertoUsdPrice(margin) > userBalance;
 
   const handleSubmitTrade = async () => {
     if (margin <= 0) {
@@ -122,20 +124,15 @@ export default function BuySell({
       setTimeout(() => setError(""), 3000);
       return;
     }
-
-    // userBalance is cents, margin is dollars — compare in the same unit.
-    if (convertoUsdPrice(margin) > userBalance) {
+    if (insufficient) {
       setError("Insufficient balance");
       setTimeout(() => setError(""), 3000);
       return;
     }
-
     try {
       setIsSubmitting(true);
       setError("");
-
       const token = localStorage.getItem("token") || "";
-
       const response = await createTrade({
         symbol,
         activeTab,
@@ -148,9 +145,8 @@ export default function BuySell({
         token,
       });
       if (response.data && response.data.orderId) {
-        setSuccess(`Order placed successfully!`);
+        setSuccess("Position opened");
         setTimeout(() => setSuccess(""), 3000);
-
         const balanceResponse = await findUserAmount();
         if (balanceResponse && balanceResponse.usd_balance !== undefined) {
           setUserBalance(balanceResponse.usd_balance);
@@ -159,239 +155,89 @@ export default function BuySell({
     } catch (err) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.message || "Failed to place order");
-        setTimeout(() => setError(""), 3000);
       } else {
         setError("An unexpected error occurred");
-        setTimeout(() => setError(""), 3000);
       }
+      setTimeout(() => setError(""), 3000);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const side = activeTab === "buy" ? "long" : "short";
+  const sideColor = activeTab === "buy" ? "text-long" : "text-short";
+
   return (
     <aside
-      className="w-full h-full flex flex-col bg-surface text-ink"
+      className="flex h-full w-full flex-col bg-surface text-ink"
       aria-label="Trade ticket"
     >
-      <div className="flex border-b border-line">
-        <button
-          onClick={() => setActiveTab("buy")}
-          className={`flex-1 py-3 text-center font-medium text-sm transition ${
-            activeTab === "buy"
-              ? "text-[#158BF9] border-b-2 border-[#158BF9]"
-              : "text-neutral-300 hover:text-neutral-50"
-          }`}
-        >
-          Buy {symbol}
-        </button>
-        <button
-          onClick={() => setActiveTab("sell")}
-          className={`flex-1 py-3 text-center font-medium text-sm transition ${
-            activeTab === "sell"
-              ? "text-[#EB483F] border-b-2 border-[#EB483F]"
-              : "text-neutral-300 hover:text-neutral-50"
-          }`}
-        >
-          Sell {symbol}
-        </button>
+      {/* Side is the one decision that changes everything below it, so it sits
+          at the top and is the only place colour is used decisively. */}
+      <div className="grid shrink-0 grid-cols-2 border-b border-line">
+        {(["buy", "sell"] as const).map((t) => {
+          const on = activeTab === t;
+          return (
+            <button
+              key={t}
+              onClick={() => setActiveTab(t)}
+              aria-pressed={on}
+              className={`py-2.5 text-[13px] font-medium transition-colors ${
+                on
+                  ? t === "buy"
+                    ? "bg-long/12 text-long shadow-[inset_0_-2px_0_0_var(--color-long)]"
+                    : "bg-short/12 text-short shadow-[inset_0_-2px_0_0_var(--color-short)]"
+                  : "text-ink-faint hover:text-ink-dim"
+              }`}
+            >
+              {t === "buy" ? "Long" : "Short"}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="p-4 flex-1 overflow-y-auto">
-        <header className="mb-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-neutral-50">
-              {activeTab === "buy" ? "Buy Order" : "Sell Order"}
-            </h2>
-            <span className="rounded-md border border-neutral-600 bg-neutral-800/60 px-3 py-1 text-xs text-neutral-300">
-              {orderType === "market" ? "Market" : "Limit"}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {/* Entry price: the number that matters, given room. */}
+        <div className="border-b border-line px-4 py-3.5">
+          <div className="flex items-baseline justify-between">
+            <span className="label">{side} entry</span>
+            <span className="num text-[11px] text-ink-faint">
+              {currentAsset?.name ?? symbol}
             </span>
           </div>
-
-          <div className="mt-3 flex items-center gap-3">
-            {currentAsset ? (
-              <div className="flex items-center gap-3 p-3 bg-neutral-800/60 rounded-md border border-neutral-600">
-                <img
-                  src={currentAsset.imageUrl}
-                  alt={currentAsset.name}
-                  className="h-6 w-6 rounded-full"
-                />
-                <div>
-                  <div className="text-sm font-semibold text-neutral-50">
-                    {currentAsset.name}
-                  </div>
-                  <div className="text-xs text-neutral-400">{symbol}/USDT</div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-sm font-semibold text-neutral-50">
-                {symbol}
-              </div>
-            )}
-            <div className="text-xs ml-auto bg-neutral-800/60 px-3 py-2 rounded-md border border-neutral-600">
-              <span className="text-neutral-300">Balance:</span>
-              <span className="text-green-400 font-medium ml-2">
-                ${toDisplayPriceUSD(userBalance)} USD
-              </span>
-            </div>
+          <p className={`num mt-1.5 text-[26px] font-medium leading-none ${sideColor}`}>
+            {entry.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          </p>
+          <div className="num mt-2 flex gap-4 text-[11px] text-ink-faint">
+            <span>bid {bidPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+            <span>ask {askPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
           </div>
-        </header>
-
-        <section className="grid grid-cols-2 gap-3 mt-4" aria-label="Prices">
-          <div className="rounded-lg border border-neutral-600 bg-neutral-800/60 p-3 relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-neutral-400">Sell Price</div>
-              <div className="text-xs bg-[#EB483F]/20 text-[#EB483F] px-2 py-1 rounded">
-                SELL
-              </div>
-            </div>
-            <div className="mt-2 text-lg font-semibold text-[#EB483F] flex items-center">
-              <span className="text-sm mr-1">$</span>
-              {bidPrice}
-            </div>
-            <div className="absolute w-1 h-full bg-[#EB483F]/40 left-0 top-0"></div>
-          </div>
-          <div className="rounded-lg border border-neutral-600 bg-neutral-800/60 p-3 relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-neutral-400">Buy Price</div>
-              <div className="text-xs bg-[#158BF9]/20 text-[#158BF9] px-2 py-1 rounded">
-                BUY
-              </div>
-            </div>
-            <div className="mt-2 text-lg font-semibold text-[#158BF9] flex items-center">
-              <span className="text-sm mr-1">$</span>
-              {askPrice}
-            </div>
-            <div className="absolute w-1 h-full bg-[#158BF9]/40 left-0 top-0"></div>
-          </div>
-        </section>
-
-        <section className="mt-4" aria-label="Risk indicator">
-          <div className="bg-neutral-800/60 border border-neutral-600 rounded-md p-3">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-neutral-400"
-                >
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-                <span className="text-neutral-400">Risk Level</span>
-              </div>
-              <span className="font-medium text-green-400 bg-green-500/10 px-2 py-1 rounded text-xs">
-                LOW
-              </span>
-            </div>
-            <div className="mt-2 h-2 w-full rounded-full bg-neutral-600 overflow-hidden">
-              <div
-                className="h-2 rounded-full bg-gradient-to-r from-green-500 to-green-400"
-                style={{ width: "30%" }}
-                aria-hidden="true"
-              />
-            </div>
-          </div>
-        </section>
-
-        <div className="mt-3 bg-[#0f171b] border border-[#263136] rounded-md p-2">
-          <div className="flex items-center gap-1 mb-1.5">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-white/60"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span className="text-xs text-white/60">Order Type</span>
-          </div>
-          <nav
-            className="inline-flex w-full rounded-md border border-[#263136] bg-[#141D22] p-0.5"
-            role="tablist"
-            aria-label="Order type"
-          >
-            <button
-              role="tab"
-              aria-selected={orderType === "market"}
-              className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition ${
-                orderType === "market"
-                  ? "bg-[#1c2a31] text-white shadow-sm"
-                  : "text-white/70 hover:text-white"
-              }`}
-              onClick={() => setOrderType("market")}
-            >
-              Market
-            </button>
-            <button
-              role="tab"
-              aria-selected={orderType === "pending"}
-              className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition ${
-                orderType === "pending"
-                  ? "bg-[#1c2a31] text-white shadow-sm"
-                  : "text-white/70 hover:text-white"
-              }`}
-              onClick={() => setOrderType("pending")}
-            >
-              Limit
-            </button>
-          </nav>
         </div>
 
-        <section className="mt-3 bg-[#0f171b] border border-[#263136] rounded-md p-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-white/60"
-              >
-                <line x1="12" y1="1" x2="12" y2="23"></line>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-              </svg>
-              <label htmlFor="margin" className="text-xs text-white/60">
-                Trading Margin
-              </label>
-            </div>
-            <span className="text-[10px] text-white/50 bg-[#1c2a31] px-1.5 py-0.5 rounded">
-              ${margin} USD
+        {/* Margin */}
+        <div className="border-b border-line px-4 py-3.5">
+          <div className="flex items-baseline justify-between">
+            <label htmlFor="margin" className="label">
+              Margin
+            </label>
+            <span className="num text-[11px] text-ink-faint">
+              of ${usd(userBalance)}
             </span>
           </div>
-
-          <div className="flex items-center gap-2">
+          <div className="mt-2 flex items-stretch">
             <button
               type="button"
               aria-label="Decrease margin"
-              className="rounded-md border border-[#263136] px-2 py-1 text-xs text-white/80 hover:bg-[#1c2a31] transition-colors"
-              onClick={() => setMargin((prev) => Math.max(10, prev - 10))}
+              onClick={() => setMargin((p) => Math.max(10, p - 10))}
               disabled={isSubmitting}
+              className="num w-8 border border-line bg-sunken text-ink-dim transition-colors hover:text-ink disabled:opacity-40"
             >
               −
             </button>
-            <div className="w-full relative">
-              <div className="absolute left-0 top-0 h-full px-2 flex items-center">
-                <span className="text-xs text-white/50">$</span>
-              </div>
+            <div className="relative flex-1">
+              <span className="num pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px] text-ink-faint">
+                $
+              </span>
               <input
                 id="margin"
                 name="margin"
@@ -401,397 +247,182 @@ export default function BuySell({
                 value={margin}
                 onChange={(e) => setMargin(Number(e.target.value))}
                 disabled={isSubmitting}
-                className="w-full rounded-md border border-[#263136] bg-[#141D22] pl-6 pr-2 py-1.5 text-xs outline-none focus:border-[#158BF9] transition-colors"
+                aria-invalid={insufficient}
+                className="field num h-full rounded-none border-x-0 py-2 pl-6 pr-2 text-[14px]"
               />
             </div>
             <button
               type="button"
               aria-label="Increase margin"
-              className="rounded-md border border-[#263136] px-2 py-1 text-xs text-white/80 hover:bg-[#1c2a31] transition-colors"
-              onClick={() => setMargin((prev) => prev + 10)}
+              onClick={() => setMargin((p) => p + 10)}
               disabled={isSubmitting}
+              className="num w-8 border border-line bg-sunken text-ink-dim transition-colors hover:text-ink disabled:opacity-40"
             >
               +
             </button>
           </div>
+          {insufficient && (
+            <p className="mt-1.5 text-[11px] text-short">
+              Above your balance of ${usd(userBalance)}.
+            </p>
+          )}
+        </div>
 
-          <div className="mt-2 h-1 w-full bg-[#263136] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-[#158BF9]/30 to-[#158BF9]/80"
-              style={{
-                width: `${Math.min(100, (convertoUsdPrice(margin) / userBalance) * 100)}%`,
-              }}
-            ></div>
+        {/* Leverage */}
+        <div className="border-b border-line px-4 py-3.5">
+          <div className="flex items-baseline justify-between">
+            <span className="label">Leverage</span>
+            <span className="num text-[11px] text-ink-faint">
+              exposure ${notional.toLocaleString("en-US")}
+            </span>
           </div>
-        </section>
-
-        <section className="mt-3 bg-[#0f171b] border border-[#263136] rounded-md p-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-white/60"
-              >
-                <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"></path>
-                <polygon points="12 15 17 21 7 21 12 15"></polygon>
-              </svg>
-              <label className="text-xs text-white/60">Leverage</label>
-            </div>
-            <div className="flex items-center">
-              <div className="text-xs text-white/50 bg-[#1c2a31] px-1.5 py-0.5 rounded mr-1">
-                <span className="text-white/70 font-medium">{leverage}x</span>
-              </div>
-              <div className="text-[10px] text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">
-                ${(margin * leverage).toLocaleString("en-US")}
-              </div>
-            </div>
+          <div className="mt-2 grid grid-cols-5 gap-px bg-line">
+            {LEVERAGES.map((lev) => {
+              const on = leverage === lev;
+              return (
+                <button
+                  key={lev}
+                  type="button"
+                  onClick={() => setLeverage(lev)}
+                  disabled={isSubmitting}
+                  aria-pressed={on}
+                  className={`num py-1.5 text-[12px] font-medium transition-colors ${
+                    on
+                      ? "bg-accent text-[#04121f]"
+                      : "bg-sunken text-ink-dim hover:text-ink"
+                  }`}
+                >
+                  {lev}x
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          <div className="grid grid-cols-5 gap-1.5">
-            {[1, 2, 5, 10, 20].map((lev) => (
+        {/* The promise the landing page makes, kept. */}
+        {!liquidation && (
+          <div className="flex items-baseline justify-between border-b border-line px-4 py-3">
+            <span className="label">Liquidation</span>
+            <span className="num text-[12px] text-ink-faint">
+              none at 1x
+            </span>
+          </div>
+        )}
+        {liquidation && (
+          <div className="flex items-baseline justify-between border-b border-line px-4 py-3">
+            <span className="label">Liquidation</span>
+            <span className="num text-right text-[13px]">
+              <span className="text-short">
+                {liquidation.price.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+              <span className="ml-2 text-[11px] text-ink-faint">
+                {activeTab === "buy" ? "−" : "+"}
+                {liquidation.movePct.toFixed(liquidation.movePct < 10 ? 1 : 0)}%
+              </span>
+            </span>
+          </div>
+        )}
+
+        {/* Order type */}
+        <div className="border-b border-line px-4 py-3.5">
+          <span className="label">Order type</span>
+          <div className="mt-2 grid grid-cols-2 gap-px bg-line">
+            {(["market", "pending"] as const).map((t) => (
               <button
-                key={lev}
+                key={t}
                 type="button"
-                className={`rounded-md border relative overflow-hidden ${
-                  leverage === lev
-                    ? "border-[#158BF9] bg-[#158BF9]/10 text-[#158BF9]"
-                    : "border-[#263136] text-white/70 hover:bg-[#1c2a31]"
-                } px-1 py-1.5 text-xs transition-all`}
-                onClick={() => setLeverage(lev)}
-                disabled={isSubmitting}
+                onClick={() => setOrderType(t)}
+                aria-pressed={orderType === t}
+                className={`py-1.5 text-[12px] font-medium transition-colors ${
+                  orderType === t
+                    ? "bg-raised text-ink"
+                    : "bg-sunken text-ink-faint hover:text-ink-dim"
+                }`}
               >
-                {leverage === lev && (
-                  <div className="absolute top-0 left-0 w-1 h-full bg-[#158BF9]"></div>
-                )}
-                {lev}x
+                {t === "market" ? "Market" : "Limit"}
               </button>
             ))}
           </div>
-        </section>
-
-        <div className="mt-3 space-y-2">
-          <div className="bg-[#0f171b] border border-[#263136] rounded-md p-2">
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-white/60"
-                >
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                </svg>
-                <label htmlFor="tp-toggle" className="text-xs text-white/60">
-                  Take Profit
-                </label>
-                <span className="bg-green-500/10 text-green-400 text-[10px] px-1.5 py-0.5 rounded">
-                  Recommended
-                </span>
-              </div>
-              <div className="flex items-center">
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    id="tp-toggle"
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={tpEnabled}
-                    onChange={(e) => setTpEnabled(e.target.checked)}
-                  />
-                  <div className="w-9 h-5 bg-[#1c2a31] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#158BF9]/30"></div>
-                </label>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute left-0 top-0 h-full px-2 flex items-center">
-                <span className="text-xs text-white/50">$</span>
-              </div>
-              <input
-                id="tp-price"
-                name="tp"
-                type="number"
-                step="0.01"
-                placeholder="Target Price"
-                disabled={!tpEnabled}
-                value={tpPrice}
-                onChange={(e) => setTpPrice(e.target.value)}
-                className={`
-                  w-full rounded-md border border-[#263136] bg-[#141D22] pl-6 pr-2 py-1.5 text-xs outline-none 
-                  ${
-                    tpEnabled
-                      ? "focus:border-[#158BF9] transition-colors"
-                      : "opacity-50"
-                  }
-                `}
-              />
-            </div>
-
-            {tpEnabled && (
-              <div className="mt-1.5 space-y-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <div className="text-[10px] text-white/50">
-                      Est. Profit:
-                    </div>
-                  </div>
-                  <div
-                    className={`text-[10px] px-1.5 py-0.5 rounded ${
-                      estimatedTpPnlInCents > 0
-                        ? "text-green-400 bg-green-500/10"
-                        : "text-red-400 bg-red-500/10"
-                    }`}
-                  >
-                    {estimatedTpPnlInCents >= 0 ? "+$" : "-$"}
-                    {toDisplayPriceUSD(Math.abs(estimatedTpPnlInCents)).toFixed(
-                      2
-                    )}
-                  </div>
-                </div>
-                <div className="text-[10px] text-white/40">
-                  Target: ${tpPrice} | Current: $
-                  {activeTab === "buy" ? askPrice : bidPrice}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="bg-[#0f171b] border border-[#263136] rounded-md p-2">
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-white/60"
-                >
-                  <path d="M10 16l-6-6 6-6"></path>
-                  <path d="M20 21v-7a4 4 0 0 0-4-4H5"></path>
-                </svg>
-                <label htmlFor="sl-toggle" className="text-xs text-white/60">
-                  Stop Loss
-                </label>
-                <span className="bg-red-500/10 text-red-400 text-[10px] px-1.5 py-0.5 rounded">
-                  Risk Protection
-                </span>
-              </div>
-              <div className="flex items-center">
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    id="sl-toggle"
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={slEnabled}
-                    onChange={(e) => setSlEnabled(e.target.checked)}
-                  />
-                  <div className="w-9 h-5 bg-[#1c2a31] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#EB483F]/30"></div>
-                </label>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute left-0 top-0 h-full px-2 flex items-center">
-                <span className="text-xs text-white/50">$</span>
-              </div>
-              <input
-                id="sl-price"
-                name="sl"
-                type="number"
-                step="0.01"
-                placeholder="Stop Price"
-                disabled={!slEnabled}
-                value={slPrice}
-                onChange={(e) => setSlPrice(e.target.value)}
-                className={`
-                  w-full rounded-md border border-[#263136] bg-[#141D22] pl-6 pr-2 py-1.5 text-xs outline-none 
-                  ${
-                    slEnabled
-                      ? "focus:border-[#EB483F] transition-colors"
-                      : "opacity-50"
-                  }
-                `}
-              />
-            </div>
-
-            {slEnabled && (
-              <div className="mt-1.5 space-y-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <div className="text-[10px] text-white/50">Est. Loss:</div>
-                  </div>
-                  <div
-                    className={`text-[10px] px-1.5 py-0.5 rounded ${
-                      estimatedSlPnlInCents < 0
-                        ? "text-red-400 bg-red-500/10"
-                        : "text-green-400 bg-green-500/10"
-                    }`}
-                  >
-                    {/* Always show loss as negative, but use abs for the number */}
-                    {estimatedSlPnlInCents > 0 ? "+$" : "-$"}
-                    {toDisplayPriceUSD(Math.abs(estimatedSlPnlInCents)).toFixed(
-                      2
-                    )}
-                  </div>
-                </div>
-                <div className="text-[10px] text-white/40">
-                  Stop: ${slPrice} | Current: $
-                  {activeTab === "buy" ? askPrice : bidPrice}
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
+        {/* Exits */}
+        {(
+          [
+            ["Take profit", tpEnabled, setTpEnabled, tpPrice, setTpPrice, estimatedTpPnlInCents],
+            ["Stop loss", slEnabled, setSlEnabled, slPrice, setSlPrice, estimatedSlPnlInCents],
+          ] as const
+        ).map(([label, enabled, setEnabled, value, setValue, pnl]) => (
+          <div key={label} className="border-b border-line px-4 py-3">
+            <label className="flex cursor-pointer items-center justify-between">
+              <span className="label">{label}</span>
+              <input
+                type="checkbox"
+                checked={enabled}
+                onChange={(e) => setEnabled(e.target.checked)}
+                className="h-3.5 w-3.5 accent-[var(--color-accent)]"
+              />
+            </label>
+            {enabled && (
+              <>
+                <div className="relative mt-2">
+                  <span className="num pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px] text-ink-faint">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Target price"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    className="field num py-2 pl-6 pr-2 text-[13px]"
+                  />
+                </div>
+                {value && (
+                  <p className="num mt-1.5 flex justify-between text-[11px]">
+                    <span className="text-ink-faint">estimated</span>
+                    <span className={pnl >= 0 ? "text-long" : "text-short"}>
+                      {pnl >= 0 ? "+" : "−"}${usd(Math.abs(pnl))}
+                    </span>
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Pinned so the action never scrolls out of reach. */}
+      <div className="shrink-0 border-t border-line px-4 py-3">
         {error && (
-          <div className="mt-2 p-1 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-[10px]">
+          <p role="alert" className="mb-2 text-[12px] text-short">
             {error}
-          </div>
+          </p>
         )}
-
         {success && (
-          <div className="mt-2 p-1 bg-green-500/10 border border-green-500/30 rounded text-green-400 text-[10px]">
+          <p role="status" className="mb-2 text-[12px] text-long">
             {success}
-          </div>
+          </p>
         )}
-
         <button
-          className={`mt-3 w-full rounded-md px-3 py-3 text-xs font-semibold transition-all flex items-center justify-center gap-2 relative overflow-hidden ${
-            activeTab === "buy"
-              ? "bg-gradient-to-r from-[#158BF9]/90 to-[#158BF9] hover:from-[#158BF9] hover:to-[#158BF9]/90 text-white"
-              : "bg-gradient-to-r from-[#EB483F]/90 to-[#EB483F] hover:from-[#EB483F] hover:to-[#EB483F]/90 text-white"
-          } ${isSubmitting ? "opacity-80 cursor-not-allowed" : ""}`}
-          aria-label={
-            activeTab === "buy" ? "Place buy order" : "Place sell order"
-          }
           onClick={handleSubmitTrade}
-          disabled={isSubmitting}
+          disabled={isSubmitting || insufficient}
+          className={`btn w-full py-2.5 text-[14px] ${
+            activeTab === "buy"
+              ? "bg-long text-[#04140c] hover:brightness-110"
+              : "bg-short text-[#1a0605] hover:brightness-110"
+          } disabled:opacity-45`}
         >
-          {isSubmitting ? (
-            <>
-              <svg
-                className="animate-spin h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              <span>Processing...</span>
-            </>
-          ) : (
-            <>
-              {activeTab === "buy" ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 5v14"></path>
-                  <path d="M19 12l-7-7-7 7"></path>
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 19V5"></path>
-                  <path d="M5 12l7 7 7-7"></path>
-                </svg>
-              )}
-              <span>
-                {activeTab === "buy" ? "Buy" : "Sell"} {symbol}
-              </span>
-            </>
-          )}
+          {isSubmitting
+            ? "Placing…"
+            : `${activeTab === "buy" ? "Long" : "Short"} ${symbol} · $${notional.toLocaleString("en-US")}`}
         </button>
-
-        <div className="mt-2 p-1.5 rounded bg-[#0f171b]/80 border border-[#263136]">
-          <div className="flex items-center gap-1.5 justify-center">
-            {orderType === "market" ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-white/40"
-              >
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-white/40"
-              >
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-              </svg>
-            )}
-            <p className="text-center text-[10px] text-white/40">
-              {orderType === "market"
-                ? "Instant execution at market price."
-                : "Order will trigger when price meets condition."}
-            </p>
-          </div>
-        </div>
+        <p className="mt-2 text-center text-[11px] text-ink-faint">
+          {orderType === "market"
+            ? `Fills now at ${entry.toLocaleString("en-US", { minimumFractionDigits: 2 })}.`
+            : "Triggers when the price meets your condition."}
+        </p>
       </div>
     </aside>
   );
