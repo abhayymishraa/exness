@@ -46,11 +46,15 @@ tradesRouter.get("/", usermiddleware, (req, res) => {
     ([orderId, order]) => ({
       orderId,
       type: order.type,
+      asset: order.asset,
       margin: order.margin,
       leverage: order.leverage,
       openPrice: order.openPrice,
       closePrice: order.closePrice,
       pnl: order.pnl,
+      timestamp: order.timestamp,
+      closeTimestamp: order.closeTimestamp,
+      closeReason: order.closeReason,
     }),
   );
 

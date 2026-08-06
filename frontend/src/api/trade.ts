@@ -80,6 +80,20 @@ export async function submitsignin(email: string, pass: string) {
   }
 }
 
+export interface Me {
+  email: string;
+  usd_balance: number;
+  createdAt: number;
+}
+
+export async function getMe(): Promise<Me> {
+  const { data } = await axios.get(`${BASE_URL}/user/me`, {
+    headers: { Authorization: localStorage.getItem("token") ?? "" },
+    withCredentials: true,
+  });
+  return data;
+}
+
 export async function findUserAmount() {
   try {
     const token = localStorage.getItem("token");

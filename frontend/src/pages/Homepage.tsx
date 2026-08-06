@@ -266,11 +266,21 @@ export default function ExnessLanding() {
                   </dl>
                 </Reveal>
 
-                <Reveal delay={0.18} className="bg-surface p-5">
-                  <h3 className="text-[15px] font-semibold">
+                <Reveal
+                  delay={0.18}
+                  className="relative overflow-hidden bg-surface p-5"
+                >
+                  <img
+                    src="/img/world-6.webp"
+                    alt=""
+                    aria-hidden
+                    loading="lazy"
+                    className="pointer-events-none absolute -bottom-6 -right-10 w-52 opacity-40"
+                  />
+                  <h3 className="relative text-[15px] font-semibold">
                     Candles the way venues draw them.
                   </h3>
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-ink-dim">
+                  <p className="relative mt-1.5 max-w-[30ch] text-[13px] leading-relaxed text-ink-dim">
                     Trade-priced, exchange-time buckets, in-progress candle
                     included. The same kline model Binance streams.
                   </p>

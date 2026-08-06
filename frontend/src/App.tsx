@@ -3,6 +3,7 @@ import Signin from "./pages/Singin";
 import Signup from "./pages/Signup";
 import Trading from "./pages/Trading";
 import ExnessLanding from "./pages/Homepage";
+import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route path="/signin" element={<Signin />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/trading" element={<Trading />} />
+        <Route path="/account" element={<Account />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

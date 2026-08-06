@@ -25,6 +25,7 @@ export async function loadState() {
       password: u.password,
       assets: {},
       balance: { usd_balance: Number(u.usdBalance) },
+      createdAt: u.createdAt.getTime(),
     };
   }
 

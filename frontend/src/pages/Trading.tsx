@@ -7,7 +7,7 @@ import AskBids from "../components/AskBidsTable";
 import { findUserAmount } from "../api/trade";
 import OrdersPanel from "../components/OrdersPanel";
 import BuySell from "../components/BuySell";
-import { toDisplayPrice } from "../utils/utils";
+import { toDisplayPrice, toDisplayPriceUSD } from "../utils/utils";
 
 const PAIRS: { symbol: SYMBOL; label: string }[] = [
   { symbol: Channels.BTCUSDT, label: "BTC/USDT" },
@@ -25,22 +25,29 @@ export default function Trading() {
   const [duration, setDuration] = useState<Duration>(Duration.candles_1m);
   const [symbol, setSymbol] = useState<SYMBOL>(Channels.BTCUSDT);
   const [prices, setPrices] = useState({ askPrice: 0, bidPrice: 0 });
+  const [balance, setBalance] = useState<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // This call already ran for the auth check and threw the figure away. The
+    // header now shows it, so no second poller is needed.
     async function checkdata() {
       try {
         const data = await findUserAmount();
-        if (!data.usd_balance) {
+        if (data.usd_balance === undefined) {
           localStorage.removeItem("token");
           navigate("/signin");
+          return;
         }
+        setBalance(data.usd_balance);
       } catch (error) {
         console.error("Error fetching user data:", error);
         navigate("/signin");
       }
     }
     checkdata();
+    const id = setInterval(checkdata, 10000);
+    return () => clearInterval(id);
   }, [navigate]);
 
   const signOut = () => {
@@ -98,6 +105,27 @@ export default function Trading() {
             );
           })}
         </div>
+
+        {/* Balance was only visible inside the trade ticket, so it vanished the
+            moment you looked at positions or the chart. */}
+        <Link
+          to="/account"
+          className="group flex items-baseline gap-2 border border-line px-3 py-1 transition-colors hover:border-accent"
+          title="Account"
+        >
+          <span className="label">Balance</span>
+          {balance === null ? (
+            <span className="inline-block h-4 w-16 animate-pulse bg-raised align-middle" />
+          ) : (
+            <span className="num text-[13px] font-medium text-ink">
+              $
+              {toDisplayPriceUSD(balance).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          )}
+        </Link>
 
         <button
           onClick={signOut}

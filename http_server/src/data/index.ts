@@ -5,6 +5,8 @@ export const USERS: Record<
     password: string;
     balance: { usd_balance: number };
     assets: Record<string, number>;
+    /** epoch ms, mirrored from the Neon row so /user/me needs no query */
+    createdAt: number;
   }
 > = {};
 

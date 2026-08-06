@@ -211,6 +211,54 @@
   }
 }
 
+/* --- Tactical-telemetry layer -------------------------------------------
+   Scoped to .tty. The industrial-brutalist archetype calls for Aviation Red as
+   the sole accent, but red already means loss/short in this app - using it for
+   emphasis too would collide with data meaning on a P&L screen. So: brutalist
+   structure and materials, existing semantic palette.
+------------------------------------------------------------------------- */
+.tty {
+  /* 90-degree corners everywhere, per the archetype. */
+  --radius-panel: 0px;
+}
+.tty .panel,
+.tty .btn,
+.tty .field {
+  border-radius: 0;
+}
+
+/* Simulated electron-beam sweep. Fixed and non-interactive so it never costs a
+   repaint on scroll. */
+.tty-scan {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0 2px,
+    rgb(0 0 0 / 0.22) 2px 4px
+  );
+}
+
+/* Registration marks at grid intersections. */
+.tty-cross::before {
+  content: "+";
+  position: absolute;
+  top: -6px;
+  left: -5px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--color-line-strong);
+}
+
+/* Macro numerals: the archetype's extreme scale contrast. */
+.tty-mega {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(2.75rem, 9vw, 6rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+}
+
 /* One orchestrated page load with staggered delays beats scattered
    micro-animations. */
 @keyframes rise {

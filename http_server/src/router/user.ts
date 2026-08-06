@@ -36,6 +36,7 @@ userRouter.post("/signup", async (req, res) => {
       password: hashed,
       assets: {},
       balance: { usd_balance: balance },
+      createdAt: Date.now(),
     };
     await saveUser(uuid, email, hashed, balance);
 
@@ -76,6 +77,18 @@ userRouter.post("/signin", async (req, res) => {
       message: "Incorrect credentials",
     });
   }
+});
+
+// The account surface needs the identity behind the token. /balance alone
+// cannot answer "whose account is this" or "since when".
+userRouter.get("/me", usermiddleware, (req, res) => {
+  //@ts-ignore
+  const user = USERS[req.userId]!;
+  return res.status(200).json({
+    email: user.email,
+    usd_balance: user.balance.usd_balance,
+    createdAt: user.createdAt,
+  });
 });
 
 userRouter.get("/balance", usermiddleware, (req, res) => {
