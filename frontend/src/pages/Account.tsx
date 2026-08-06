@@ -175,12 +175,17 @@ export default function Account() {
             alt="Clay model of an open strongroom, stacked discs on its shelves and a blue thread running in across the floor"
             className="h-[168px] w-full object-cover sm:h-[220px]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-base via-base/70 to-transparent" />
+          {/* The scrim must survive a long local-part: at 70% the headline ran
+              into the subject. Opaque across 55% of the width, then falls off. */}
+          <div className="absolute inset-0 bg-gradient-to-r from-base from-30% via-base/88 via-55% to-transparent" />
           <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6">
             <p className="num text-[10px] uppercase tracking-[0.28em] text-ink-faint">
               [ Account ]
             </p>
-            <h1 className="num mt-1.5 text-[clamp(1.6rem,4vw,2.4rem)] font-semibold uppercase tracking-[-0.03em]">
+            <h1
+              className="num mt-1.5 max-w-[62%] truncate text-[clamp(1.5rem,3.6vw,2.2rem)] font-semibold uppercase tracking-[-0.03em]"
+              title={me?.email}
+            >
               {me ? me.email.split("@")[0] : " "}
             </h1>
           </div>

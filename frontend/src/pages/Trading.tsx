@@ -138,7 +138,7 @@ export default function Trading() {
       {/* gap-px over a line-coloured background: the 1px gaps ARE the dividers,
           so no panel carries its own border. */}
       <div className="grid min-h-0 flex-1 gap-px bg-line lg:grid-cols-[280px_1fr_344px]">
-        <aside className="order-2 min-h-0 overflow-auto bg-surface lg:order-1">
+        <aside className="order-2 min-h-0 min-w-0 overflow-auto bg-surface lg:order-1">
           <div className="flex items-center justify-between border-b border-line px-3 py-2.5">
             <h2 className="label">Order book</h2>
             <span className="flex items-center gap-1.5 text-[10px] text-ink-faint">
@@ -149,7 +149,7 @@ export default function Trading() {
           <AskBids symbol={symbol} />
         </aside>
 
-        <section className="order-1 flex min-h-0 flex-col gap-px bg-line lg:order-2">
+        <section className="order-1 flex min-h-0 min-w-0 flex-col gap-px bg-line lg:order-2">
           <div className="min-h-0 flex-[3] bg-surface">
             <ChartComponent
               symbol={symbol}
@@ -162,7 +162,7 @@ export default function Trading() {
           </div>
         </section>
 
-        <aside className="order-3 min-h-0 overflow-auto bg-surface">
+        <aside className="order-3 min-h-0 min-w-0 overflow-auto bg-surface">
           <BuySell
             symbol={symbol}
             askPrice={toDisplayPrice(prices.askPrice)}
