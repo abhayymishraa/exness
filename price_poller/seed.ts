@@ -192,6 +192,16 @@ async function initializeTimescale() {
     SELECT add_retention_policy('"Trade"', INTERVAL '90 days', if_not_exists => TRUE);
   `);
 
+  // Real-time aggregates: queries union materialized buckets with an on-the-fly
+  // aggregation of the raw tail, so /candles includes the in-progress candle —
+  // the same behaviour as Binance's REST klines. Without this the 1m chart's
+  // history ends ~90s before now and the live candle floats after a gap.
+  for (const view of ["candles_1m", "candles_1d", "candles_1w"]) {
+    await client.query(
+      `ALTER MATERIALIZED VIEW ${view} SET (timescaledb.materialized_only = false);`,
+    );
+  }
+
   await client.end();
   console.log("TimescaleDB hypertable + continuous aggregates initialized!");
 }

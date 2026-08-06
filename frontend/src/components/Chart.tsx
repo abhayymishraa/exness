@@ -84,12 +84,12 @@ export default function ChartComponent({
     const initChart = async () => {
       chart = createChart(chartContainerRef.current!, {
         layout: {
-          background: {
-            type: ColorType.VerticalGradient,
-            topColor: "#141D22",
-            bottomColor: "#141D22",
-          },
-          textColor: "#FFFFFF",
+          background: { type: ColorType.Solid, color: "#101b20" },
+          textColor: "#93a7b0",
+        },
+        grid: {
+          vertLines: { color: "#1e2e35" },
+          horzLines: { color: "#1e2e35" },
         },
         width: chartContainerRef.current!.clientWidth,
         height: chartContainerRef.current!.clientHeight,
@@ -99,12 +99,14 @@ export default function ChartComponent({
         },
       });
 
+      // Green up / red down — the convention every venue shares. Blue up-candles
+      // read as "selected", not "rising".
       candlestickSeries = chart.addSeries(CandlestickSeries, {
-        upColor: "#158BF9",
-        downColor: "#EB483F",
+        upColor: "#1fb26a",
+        downColor: "#eb483f",
         borderVisible: false,
-        wickUpColor: "#158BF9",
-        wickDownColor: "#EB483F",
+        wickUpColor: "#1fb26a",
+        wickDownColor: "#eb483f",
       });
 
       const tickWrapper = (trade: Trade) => {
@@ -114,7 +116,10 @@ export default function ChartComponent({
           symbol: trade.symbol,
           bidPrice: trade.bidPrice,
           askPrice: trade.askPrice,
-          time: Math.floor(Date.now() / 1000),
+          price: trade.price,
+          // exchange event time; local clock only as a fallback. Bucketing by
+          // receive time mis-files boundary ticks into the wrong candle.
+          time: trade.time ?? Math.floor(Date.now() / 1000),
         };
 
         const candle = processRealupdate(tick, duration);
@@ -185,26 +190,26 @@ export default function ChartComponent({
   }, [duration, symbol, onPriceUpdate]);
 
   return (
-    <div className="text-neutral-50 h-full w-full relative">
+    <div className="relative h-full w-full text-ink">
       {tooltipVisible && tooltip && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 bg-neutral-900/90 backdrop-blur-sm border border-neutral-600 rounded-md text-sm shadow-lg transition-opacity">
+        <div className="absolute top-4 left-1/2 z-50 -translate-x-1/2 border border-line bg-surface px-4 py-2 text-sm transition-opacity">
           {tooltip}
         </div>
       )}
-      <div className="bg-neutral-900/80 backdrop-blur-xl border border-neutral-600 rounded-lg overflow-hidden h-full w-full flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b border-neutral-600/40">
+      <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
+        <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
           <div>
-            <h2 className="text-lg font-semibold text-neutral-50">{symbol}</h2>
-            <div className="text-sm text-neutral-400">
+            <h2 className="num text-[15px] font-semibold text-ink">{symbol}</h2>
+            <div className="text-[11px] text-ink-faint">
               {duration === Duration.candles_1m && "1 Minute Chart"}
               {duration === Duration.candles_1d && "Daily Chart"}
               {duration === Duration.candles_1w && "Weekly Chart"}
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center border border-neutral-600 rounded-md bg-neutral-800/60 backdrop-blur-sm">
+            <div className="flex items-center border border-line">
               <button
-                className="p-2 rounded-l-md hover:bg-neutral-700/50 transition-colors text-neutral-300 hover:text-neutral-50"
+                className="p-2 text-ink-faint transition-colors hover:bg-raised hover:text-ink"
                 onClick={() => {
                   if (chartRef.current) {
                     const logicalRange = chartRef.current
@@ -245,9 +250,9 @@ export default function ChartComponent({
                   <line x1="8" y1="11" x2="14" y2="11"></line>
                 </svg>
               </button>
-              <div className="w-[1px] h-8 bg-neutral-600"></div>
+              <div className="h-8 w-px bg-line"></div>
               <button
-                className="p-2 hover:bg-neutral-700/50 transition-colors text-neutral-300 hover:text-neutral-50"
+                className="p-2 text-ink-faint transition-colors hover:bg-raised hover:text-ink"
                 onClick={() => {
                   if (chartRef.current) {
                     const logicalRange = chartRef.current
@@ -284,9 +289,9 @@ export default function ChartComponent({
                   <line x1="8" y1="11" x2="14" y2="11"></line>
                 </svg>
               </button>
-              <div className="w-[1px] h-8 bg-neutral-600"></div>
+              <div className="h-8 w-px bg-line"></div>
               <button
-                className="p-2 rounded-r-md hover:bg-neutral-700/50 transition-colors text-neutral-300 hover:text-neutral-50"
+                className="p-2 text-ink-faint transition-colors hover:bg-raised hover:text-ink"
                 onClick={() => {
                   if (chartRef.current) {
                     chartRef.current.timeScale().fitContent();
@@ -311,23 +316,6 @@ export default function ChartComponent({
                 </svg>
               </button>
             </div>
-            <button className="p-2 rounded-md hover:bg-neutral-700/50 transition-colors text-neutral-300 hover:text-neutral-50">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </button>
           </div>
         </div>
         <div className="flex-grow">

@@ -13,7 +13,11 @@ export async function getKlineData(
 ) {
   const currentTimeSec = Math.floor(Date.now() / 1000);
 
-  const startTimestamp = startTime ? Number(startTime) : currentTimeSec - 3600;
+  // Sensible default window per timeframe — one hour of history is 0-1
+  // candles on the daily and weekly charts.
+  const lookback =
+    duration === "1w" ? 63072000 : duration === "1d" ? 10368000 : 21600;
+  const startTimestamp = startTime ? Number(startTime) : currentTimeSec - lookback;
   const endTimestamp = endTime ? Number(endTime) : currentTimeSec;
 
   const res = await axios.get(`${BASE_URL}/candles`, {

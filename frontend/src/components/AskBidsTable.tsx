@@ -7,6 +7,10 @@ export interface Trade {
   bidPrice: number;
   askPrice: number;
   symbol: SYMBOL;
+  /** raw trade price (internal scale) — candle source */
+  price?: number;
+  /** exchange event time, seconds */
+  time?: number;
 }
 
 const SYMBOLS = ["BTC", "ETH", "SOL"] as const;

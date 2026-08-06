@@ -38,6 +38,9 @@ export function pushToRedis(
       symbol: symbolmap[type],
       askPrice: ask,
       bidPrice: bid,
+      // raw trade price: candles are built from trades (Binance-style), never
+      // from bid or ask
+      price: value,
       decimals: 4,
       time: Math.floor(new Date(time).getTime() / 1000),
     }),
