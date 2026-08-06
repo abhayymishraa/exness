@@ -62,8 +62,10 @@ apt-get update -qq
 
 # --- Packages -----------------------------------------------------------------
 log "Installing Caddy, PostgreSQL ${PG_MAJOR} + TimescaleDB, Redis, Node ${NODE_MAJOR}"
+# postgresql-client-18 as well: managed Postgres (Neon) runs a newer major than
+# the local server, and pg_dump refuses a server newer than itself.
 apt-get install -y -qq caddy redis nodejs \
-  "postgresql-${PG_MAJOR}" "postgresql-client-${PG_MAJOR}" \
+  "postgresql-${PG_MAJOR}" "postgresql-client-${PG_MAJOR}" postgresql-client-18 \
   "timescaledb-2-postgresql-${PG_MAJOR}"
 
 log "Bun ${BUN_VERSION} (system-wide, so systemd units need no PATH tricks)"

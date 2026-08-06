@@ -23,6 +23,32 @@ for s in "${SERVICES[@]}"; do
     "./${s}/" "${USER_}@${HOST}:/srv/${PROJECT}/${s}/"
 done
 
+# Units and the Caddy site used to be copied by hand, so the repo and the box
+# drifted silently. Sync them too, and only reload what actually changed.
+echo "==> syncing deploy config"
+rsync -az -e "ssh ${SSH_OPTS[*]}" ./deploy/ "${USER_}@${HOST}:/srv/${PROJECT}/deploy/"
+"${SSH[@]}" bash -euo pipefail <<EOF
+  cd /srv/${PROJECT}/deploy
+  chmod +x *.sh
+  changed=0
+  for f in apps/${PROJECT}/*.service apps/${PROJECT}/*.timer; do
+    [ -e "\$f" ] || continue
+    if ! sudo cmp -s "\$f" "/etc/systemd/system/\$(basename "\$f")"; then
+      sudo cp "\$f" /etc/systemd/system/; changed=1
+    fi
+  done
+  [ \$changed -eq 1 ] && { sudo systemctl daemon-reload; echo "  systemd units updated"; } || echo "  units unchanged"
+
+  if ! sudo cmp -s apps/${PROJECT}/${PROJECT}.caddy /etc/caddy/sites/${PROJECT}.caddy; then
+    sudo cp apps/${PROJECT}/${PROJECT}.caddy /etc/caddy/sites/
+    sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1 \
+      && sudo systemctl reload caddy && echo "  caddy reloaded" \
+      || { echo "  CADDY CONFIG INVALID - not reloaded" >&2; exit 1; }
+  else
+    echo "  caddy unchanged"
+  fi
+EOF
+
 echo "==> installing deps + migrating"
 "${SSH[@]}" bash -euo pipefail <<EOF
   set -a; . /etc/${PROJECT}/${PROJECT}.env; set +a
