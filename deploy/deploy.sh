@@ -30,6 +30,10 @@ echo "==> installing deps + migrating"
   for s in ${SERVICES[*]}; do
     cd /srv/${PROJECT}/\$s && bun install --frozen-lockfile
   done
+  # accounts on Neon
+  cd /srv/${PROJECT}/http_server
+  bunx prisma migrate deploy
+  # trades on the local TimescaleDB
   cd /srv/${PROJECT}/price_poller
   bunx prisma migrate deploy
   bun seed.ts

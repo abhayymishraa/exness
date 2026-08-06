@@ -1,0 +1,69 @@
+// Accounts and positions live on Neon, separate from the trade ticks in
+// price_poller/prisma (local TimescaleDB). Different shapes, different needs:
+// this data is small, must outlive the box, and never needs a hypertable.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Pooled endpoint + pgbouncer=true. PgBouncer runs in transaction mode and
+  // cannot carry named prepared statements across connections; without the flag
+  // any column type change yields "cached plan must not change result type".
+  url       = env("NEON_DATABASE_URL")
+  // Migrations need the direct endpoint — DDL against the pooler is unreliable.
+  directUrl = env("NEON_DIRECT_URL")
+}
+
+model User {
+  id         String @id // v5(email, fixed namespace) — stable, derived from email
+  email      String @unique
+  password   String // argon2id via Bun.password, never plaintext
+  // cents. BigInt not Int: prices are scaled by 1e4, so BTC over ~$214k
+  // overflows int4, and leveraged pnl can too. In memory these are JS numbers.
+  usdBalance BigInt
+
+  createdAt    DateTime      @default(now())
+  orders       Order[]
+  closedOrders ClosedOrder[]
+}
+
+model Order {
+  id     String @id // v4
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      String // "buy" | "sell"
+  margin    BigInt // cents
+  leverage  Int
+  asset     String // BTC | ETH | SOL
+  openPrice BigInt // PRICE_SCALE (1e4)
+  timestamp BigInt // Date.now()
+
+  takeProfit       BigInt?
+  stopLoss         BigInt?
+  liquidationPrice BigInt?
+
+  @@index([userId])
+}
+
+model ClosedOrder {
+  id     String @id
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type       String
+  margin     BigInt
+  leverage   Int
+  asset      String
+  openPrice  BigInt
+  closePrice BigInt
+  pnl        BigInt // cents, signed
+  timestamp  BigInt
+
+  closeTimestamp BigInt
+  closeReason    String // manual | take_profit | stop_loss | liquidation
+
+  @@index([userId])
+}

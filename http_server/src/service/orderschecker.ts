@@ -13,33 +13,33 @@ export async function checkOpenPositions(
 
       if (order.takeProfit) {
         if (order.type === "buy" && newPrice.bid >= order.takeProfit) {
-          closeOrder(userid, orderid, "take_profit");
+          await closeOrder(userid, orderid, "take_profit");
           continue;
         }
         if (order.type === "sell" && newPrice.ask <= order.takeProfit) {
-          closeOrder(userid, orderid, "take_profit");
+          await closeOrder(userid, orderid, "take_profit");
           continue;
         }
       }
 
       if (order.stopLoss) {
         if (order.type === "buy" && newPrice.bid <= order.stopLoss) {
-          closeOrder(userid, orderid, "stop_loss");
+          await closeOrder(userid, orderid, "stop_loss");
           continue;
         }
         if (order.type === "sell" && newPrice.ask >= order.stopLoss) {
-          closeOrder(userid, orderid, "stop_loss");
+          await closeOrder(userid, orderid, "stop_loss");
           continue;
         }
       }
 
       if (order.liquidationPrice) {
         if (order.type === "buy" && newPrice.bid <= order.liquidationPrice) {
-          closeOrder(userid, orderid, "liquidation");
+          await closeOrder(userid, orderid, "liquidation");
           continue;
         }
         if (order.type === "sell" && newPrice.ask >= order.liquidationPrice) {
-          closeOrder(userid, orderid, "liquidation");
+          await closeOrder(userid, orderid, "liquidation");
           continue;
         }
       }

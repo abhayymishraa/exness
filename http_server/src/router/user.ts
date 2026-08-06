@@ -4,10 +4,11 @@ import jwt from "jsonwebtoken";
 import { SECRET, USERS } from "../data";
 import { credentailSchma } from "../types/userschema";
 import { usermiddleware } from "../middleware";
-import { getCookieOptions, toInternalUSD } from "../utils/utils";
+import { toInternalUSD } from "../utils/utils";
+import { saveUser } from "../store";
 export const userRouter = Router();
 
-userRouter.post("/signup", (req, res) => {
+userRouter.post("/signup", async (req, res) => {
   try {
     const parseduserinfo = credentailSchma.safeParse(req.body);
 
@@ -25,14 +26,19 @@ userRouter.post("/signup", (req, res) => {
       });
     }
 
+    // argon2id, built into Bun. The DB is durable now, so a plaintext column
+    // would be a permanent leak rather than one that dies with the process.
+    const hashed = await Bun.password.hash(password);
+    const balance = toInternalUSD(5000); // decimals 2
+
     USERS[uuid] = {
       email: email,
-      password: password,
+      password: hashed,
       assets: {},
-      balance: {
-        usd_balance: toInternalUSD(5000), // decimals 2
-      },
+      balance: { usd_balance: balance },
     };
+    await saveUser(uuid, email, hashed, balance);
+
     return res.status(200).json({
       userId: uuid,
     });
@@ -43,7 +49,7 @@ userRouter.post("/signup", (req, res) => {
   }
 });
 
-userRouter.post("/signin", (req, res) => {
+userRouter.post("/signin", async (req, res) => {
   try {
     const parsedData = credentailSchma.safeParse(req.body);
     if (!parsedData.success) {
@@ -54,7 +60,8 @@ userRouter.post("/signin", (req, res) => {
     const { email, password } = parsedData.data;
 
     const uuid = v5(email, "f0e1d2c3-b4a5-6789-9876-543210fedcba");
-    if (!USERS[uuid] || USERS[uuid].password !== password) {
+    const user = USERS[uuid];
+    if (!user || !(await Bun.password.verify(password, user.password))) {
       return res.status(403).json({
         message: "Incorrect credential",
       });

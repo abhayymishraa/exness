@@ -5,6 +5,7 @@ import { tradeSchema } from "../types/userschema";
 import { v4 } from "uuid";
 import { USD_SCALE, calculatePnlCents } from "../utils/utils";
 import { closeOrder } from "../utils/tradeUtils";
+import { saveBalance, saveOrder } from "../store";
 
 export const tradeRouter = Router();
 
@@ -70,6 +71,8 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
       ORDERS[userid] = {};
     }
     ORDERS[userid][orderid] = order;
+    await saveOrder(orderid, userid, order);
+    await saveBalance(userid, user.balance.usd_balance);
 
     return res.status(200).json({ orderId: orderid });
   } catch (e) {
@@ -80,7 +83,7 @@ tradeRouter.post("/", usermiddleware, async (req, res) => {
   }
 });
 
-tradeRouter.post("/close", usermiddleware, (req, res) => {
+tradeRouter.post("/close", usermiddleware, async (req, res) => {
   try {
     const { orderid } = req.body;
     //@ts-ignore
@@ -89,7 +92,7 @@ tradeRouter.post("/close", usermiddleware, (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    const pnl = closeOrder(userid, orderid, "manual");
+    const pnl = await closeOrder(userid, orderid, "manual");
 
     return res.status(200).json({
       message: "Position closed successfully",

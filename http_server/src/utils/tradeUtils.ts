@@ -1,7 +1,8 @@
 import { CLOSEDORDERS, ORDERS, PRICESTORE, USERS } from "../data";
 import { calculatePnlCents } from "./utils";
+import { moveOrderToClosed } from "../store";
 
-export function closeOrder(
+export async function closeOrder(
   userid: string,
   orderid: string,
   reason: "manual" | "take_profit" | "stop_loss" | "liquidation",
@@ -25,16 +26,18 @@ export function closeOrder(
   if (!CLOSEDORDERS[userid]) {
     CLOSEDORDERS[userid] = {};
   }
-  CLOSEDORDERS[userid][orderid] = {
+  const closed = {
     ...order,
     closePrice: closeprice,
     pnl: pnl,
     closeTimestamp: Date.now(),
     closeReason: reason,
   };
+  CLOSEDORDERS[userid][orderid] = closed;
   console.log(
     `Order ${orderid} for user ${userid} closed due to ${reason}. PnL: ${pnl}`,
   );
   delete ORDERS[userid]![orderid];
+  await moveOrderToClosed(orderid, userid, closed, user.balance.usd_balance);
   return pnl;
 }
