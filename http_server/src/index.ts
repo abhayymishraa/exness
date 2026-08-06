@@ -10,6 +10,7 @@ import { tradesRouter } from "./router/trades";
 import { assetrouter } from "./router/asset";
 import { tradeRouter } from "./router/trade";
 import { checkOpenPositions } from "./service/orderschecker";
+import { matchOrigin, parseAllowedOrigins } from "./utils/cors";
 
 const port = Number(process.env.PORT ?? 5000);
 
@@ -21,11 +22,15 @@ export const pgClient = new Client({
 
 await pgClient.connect();
 
+const CORS_ALLOWED = parseAllowedOrigins(process.env.CORS_ORIGINS);
+
 export const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: (process.env.CORS_ORIGINS ?? "http://localhost:3000").split(","),
+    // No Origin header means curl, a health check, or a server-side call.
+    // Those aren't subject to the same-origin policy, so let them through.
+    origin: (origin, cb) => cb(null, !origin || matchOrigin(CORS_ALLOWED, origin)),
     credentials: true,
   }),
 );
