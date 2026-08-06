@@ -8,6 +8,7 @@ import { getAssetDetails } from "../api/trade";
 import type { Asset } from "../types/asset";
 import {
   calculatePnlCents,
+  convertoUsdPrice,
   toDisplayPriceUSD,
   toInternalPrice,
 } from "../utils/utils";
@@ -122,7 +123,8 @@ export default function BuySell({
       return;
     }
 
-    if (margin > userBalance) {
+    // userBalance is cents, margin is dollars — compare in the same unit.
+    if (convertoUsdPrice(margin) > userBalance) {
       setError("Insufficient balance");
       setTimeout(() => setError(""), 3000);
       return;
@@ -150,8 +152,8 @@ export default function BuySell({
         setTimeout(() => setSuccess(""), 3000);
 
         const balanceResponse = await findUserAmount();
-        if (balanceResponse && balanceResponse.balance) {
-          setUserBalance(balanceResponse.balance.usd_balance);
+        if (balanceResponse && balanceResponse.usd_balance !== undefined) {
+          setUserBalance(balanceResponse.usd_balance);
         }
       }
     } catch (err) {
@@ -417,7 +419,7 @@ export default function BuySell({
             <div
               className="h-full bg-gradient-to-r from-[#158BF9]/30 to-[#158BF9]/80"
               style={{
-                width: `${Math.min(100, (margin / userBalance) * 100)}%`,
+                width: `${Math.min(100, (convertoUsdPrice(margin) / userBalance) * 100)}%`,
               }}
             ></div>
           </div>

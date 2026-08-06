@@ -8,7 +8,9 @@ export const credentailSchma = z.object({
 export const tradeSchema = z.object({
   asset: z.enum(["BTC", "ETH", "SOL"]),
   type: z.enum(["buy", "sell"]),
-  margin: z.number().positive(),
+  // Integer: this is a count of cents. A float here puts fractional cents into
+  // the balance and every downstream sum inherits them.
+  margin: z.number().int().positive(),
   leverage: z.union([
     z.literal(1),
     z.literal(5),

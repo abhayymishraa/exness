@@ -14,13 +14,21 @@ export async function closeOrder(
   const price = PRICESTORE[order.asset];
   const closeprice = order.type === "buy" ? price?.bid : price?.ask;
   if (!closeprice) return;
-  const pnl = calculatePnlCents({
+  const rawPnl = calculatePnlCents({
     side: order.type,
     openPrice: order.openPrice,
     closePrice: closeprice,
     marginCents: order.margin,
     leverage: order.leverage,
   });
+
+  // A position can never lose more than its margin — that is the entire point
+  // of a liquidation level. We mark against the CURRENT price, and between two
+  // Binance ticks the price can jump straight past the liquidation level, so
+  // the raw figure can exceed the margin. Measured on a 10x $100 position: a
+  // 20% gap past liquidation returns -18000 cents, i.e. the account goes $180
+  // negative. Clamp it.
+  const pnl = Math.max(rawPnl, -order.margin);
 
   user.balance.usd_balance += order.margin + pnl;
   if (!CLOSEDORDERS[userid]) {
