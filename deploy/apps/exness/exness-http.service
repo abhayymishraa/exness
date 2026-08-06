@@ -1,11 +1,9 @@
 [Unit]
 Description=exness http api
-After=network-online.target postgresql.service redis-server.service
-Wants=network-online.target
+After=postgresql.service redis-server.service
 Requires=postgresql.service redis-server.service
 
 [Service]
-Type=simple
 User=ubuntu
 Group=ubuntu
 WorkingDirectory=/srv/exness/http_server
@@ -15,13 +13,8 @@ ExecStart=/usr/local/bin/bun run src/index.ts
 
 Restart=always
 RestartSec=3
-# Don't hammer a genuinely broken service; give up loudly after 5 fails in 60s.
-StartLimitBurst=5
-StartLimitIntervalSec=60
 
 MemoryMax=1G
-StandardOutput=journal
-StandardError=journal
 SyslogIdentifier=exness-http
 
 NoNewPrivileges=true

@@ -1,26 +1,24 @@
 # Deploy
 
-One Oracle Ampere A1 box, no Docker. Reached over plain IPv4 for now.
+Frontend on Vercel. Everything else on one Oracle Ampere A1 box, no Docker.
 
 ```
-http://<IP>/api/v1/...          ws://<IP>/ws
-        │                              │
-        ▼                              ▼
-     Caddy :80  ── single entry point, one open port
-        ├── /api/*  → 127.0.0.1:5000   exness-http    (systemd)
-        └── /ws*    → 127.0.0.1:8080   exness-ws      (systemd)
-                                       exness-poller  (systemd, no port)
-                                          │
-                   shared PostgreSQL 17 + TimescaleDB, shared Redis
+exness.abhayymishraa.us (Vercel)
+        │ https
+        ▼
+ api.exness.abhayymishraa.us      ws.exness.abhayymishraa.us
+        │                                  │
+        └────────────► Caddy :443 ◄────────┘
+             TLS terminates here, certs auto-renew
+        ├── → 127.0.0.1:5000   exness-http    (systemd)
+        └── → 127.0.0.1:8080   exness-ws      (systemd)
+                               exness-poller  (systemd, no port)
+                                  │
+           shared PostgreSQL 17 + TimescaleDB, shared Redis
 ```
 
-No TLS: there is no domain, and a cert cannot be issued for a bare IP. The
-day a domain exists, swap the `:80 {` line in `exness.caddy` for the real
-hostname and Caddy fetches and renews the cert itself. Nothing else changes.
-
-Consequence to know: a browser page served over HTTPS (e.g. Vercel) **cannot**
-call `http://<IP>` — mixed content is a hard block. IP access works from curl,
-Postman, native apps, and a local dev frontend.
+DNS records must stay grey-cloud in Cloudflare — an orange-cloud proxy
+intercepts the HTTP-01 challenge and Caddy cannot renew.
 
 ## Why not Docker
 
@@ -34,7 +32,7 @@ most of what the Docker daemon was doing.
 
 ```
 /srv/<project>/<service>/           code (rsync target)
-/etc/<project>/<project>.env        secrets, 0600 root
+/etc/<project>/<project>.env        secrets, 640 root:<app user>
 /etc/systemd/system/<project>-*.service
 /etc/caddy/sites/<project>.caddy    auto-imported by the main Caddyfile
 ```
@@ -51,7 +49,7 @@ box is touched, and no service restarts but that project's own.
 1. `sudo bash deploy/bootstrap.sh` — installs the shared platform. Once per host.
 2. `sudo bash deploy/newdb.sh exness` — prints `DATABASE_URL`.
 3. Copy `apps/exness/exness.env.example` to `/etc/exness/exness.env`, fill it
-   in, `chmod 600`.
+   in, `chown root:ubuntu && chmod 640`.
 4. Copy the three `.service` files to `/etc/systemd/system/`, `exness.caddy` to
    `/etc/caddy/sites/`, then
    `systemctl daemon-reload && systemctl enable --now exness-http exness-ws exness-poller`
@@ -71,8 +69,7 @@ Repo secrets required:
 ## Checks
 
 ```bash
-curl http://<IP>/                       # -> exness ok
-curl http://<IP>/api/v1/asset           # -> asset list
-websocat ws://<IP>/ws                   # -> price stream after SUBSCRIBE
-journalctl -u exness-poller -f          # -> batches writing to timescale
+curl https://api.exness.abhayymishraa.us/api/v1/asset   # -> asset list
+websocat wss://ws.exness.abhayymishraa.us              # -> stream after SUBSCRIBE
+journalctl -u exness-poller -f                         # -> batches writing to timescale
 ```

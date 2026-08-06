@@ -48,15 +48,13 @@ async function main() {
     }
   });
 
-  // Binance drops the stream routinely (24h server-side limit, network blips).
-  // Flush what we have, then EXIT so systemd restarts us with a fresh socket.
-  // Returning here instead would leave the process alive holding the redis
-  // connection open: `systemctl is-active` says running, and it silently
-  // publishes nothing forever.
-  // ponytail: exit-and-let-systemd-restart beats hand-rolled reconnect+backoff.
-  // Revisit only if restart latency (RestartSec=5) ever matters.
-  const shutdown = async (why: string) => {
-    console.log(`binance stream ${why}, flushing and exiting for restart`);
+  // Binance drops the stream routinely. Flush, then EXIT so systemd restarts us —
+  // returning leaves the process alive on a dead socket, `is-active` says running,
+  // and it publishes nothing forever. ponytail: no reconnect+backoff, RestartSec=5
+  // covers it. `ws` always emits close after error, so close alone drives this.
+  ws.on("error", (err) => console.log("binance stream error: " + err));
+  ws.on("close", async () => {
+    console.log("binance stream closed, flushing and exiting for restart");
     clearInterval(batchprocess);
     try {
       await savetradeBatch(tradeBatch);
@@ -64,13 +62,7 @@ async function main() {
       console.log("final batch save failed: " + e);
     }
     process.exit(1);
-  };
-
-  ws.on("error", (err) => shutdown("errored: " + err));
-  ws.on("close", () => shutdown("closed"));
+  });
 }
 
-main().catch((e) => {
-  console.log("poller failed to start: " + e);
-  process.exit(1);
-});
+main();

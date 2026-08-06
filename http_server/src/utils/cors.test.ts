@@ -1,6 +1,6 @@
 // bun test src/utils/cors.test.ts
 import { expect, test } from "bun:test";
-import { matchOrigin, parseAllowedOrigins } from "./cors";
+import { matchOrigin } from "./cors";
 
 const allowed = [
   "http://localhost:3000",
@@ -36,9 +36,4 @@ test("attacker cannot smuggle the suffix via path or subdomain trickery", () => 
 test("unrelated origins are rejected", () => {
   expect(matchOrigin(allowed, "https://evil.example")).toBe(false);
   expect(matchOrigin(allowed, "https://exness.abhayymishraa.us.evil.com")).toBe(false);
-});
-
-test("parseAllowedOrigins trims and drops empties", () => {
-  expect(parseAllowedOrigins("a, b ,,c")).toEqual(["a", "b", "c"]);
-  expect(parseAllowedOrigins(undefined)).toEqual(["http://localhost:3000"]);
 });

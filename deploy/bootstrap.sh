@@ -42,39 +42,21 @@ apt-get install -y -qq curl gnupg ca-certificates lsb-release unzip git \
 # --- Repositories -------------------------------------------------------------
 install -d -m 0755 /etc/apt/keyrings
 
-log "Repo: Caddy"
-[[ -f /etc/apt/keyrings/caddy.gpg ]] || curl -fsSL \
-  'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
-  | gpg --dearmor -o /etc/apt/keyrings/caddy.gpg
-echo "deb [signed-by=/etc/apt/keyrings/caddy.gpg] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main" \
-  > /etc/apt/sources.list.d/caddy-stable.list
+log "Repos: Caddy, PostgreSQL, TimescaleDB, Redis, Node ${NODE_MAJOR}"
+# add_repo names its list file after $1; hosts bootstrapped before that used
+# these two names. Drop them so a re-run doesn't leave apt with duplicate sources.
+rm -f /etc/apt/sources.list.d/caddy-stable.list /etc/apt/sources.list.d/timescaledb.list
 
-log "Repo: PostgreSQL (PGDG)"
-[[ -f /etc/apt/keyrings/pgdg.gpg ]] || curl -fsSL \
-  https://www.postgresql.org/media/keys/ACCC4CF8.asc \
-  | gpg --dearmor -o /etc/apt/keyrings/pgdg.gpg
-echo "deb [signed-by=/etc/apt/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
-  > /etc/apt/sources.list.d/pgdg.list
-
-log "Repo: TimescaleDB"
-[[ -f /etc/apt/keyrings/timescale.gpg ]] || curl -fsSL \
-  https://packagecloud.io/timescale/timescaledb/gpgkey \
-  | gpg --dearmor -o /etc/apt/keyrings/timescale.gpg
-echo "deb [signed-by=/etc/apt/keyrings/timescale.gpg] https://packagecloud.io/timescale/timescaledb/ubuntu/ ${VERSION_CODENAME} main" \
-  > /etc/apt/sources.list.d/timescaledb.list
-
-log "Repo: Redis"
-[[ -f /etc/apt/keyrings/redis.gpg ]] || curl -fsSL \
-  https://packages.redis.io/gpg | gpg --dearmor -o /etc/apt/keyrings/redis.gpg
-echo "deb [signed-by=/etc/apt/keyrings/redis.gpg] https://packages.redis.io/deb ${VERSION_CODENAME} main" \
-  > /etc/apt/sources.list.d/redis.list
-
-log "Repo: NodeSource (Node ${NODE_MAJOR} LTS)"
-[[ -f /etc/apt/keyrings/nodesource.gpg ]] || curl -fsSL \
-  https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-  | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" \
-  > /etc/apt/sources.list.d/nodesource.list
+add_repo() { # name  key_url  deb_suffix
+  [[ -f "/etc/apt/keyrings/$1.gpg" ]] \
+    || curl -fsSL "$2" | gpg --dearmor -o "/etc/apt/keyrings/$1.gpg"
+  echo "deb [signed-by=/etc/apt/keyrings/$1.gpg] $3" > "/etc/apt/sources.list.d/$1.list"
+}
+add_repo caddy      'https://dl.cloudsmith.io/public/caddy/stable/gpg.key'       "https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main"
+add_repo pgdg       https://www.postgresql.org/media/keys/ACCC4CF8.asc           "http://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main"
+add_repo timescale  https://packagecloud.io/timescale/timescaledb/gpgkey         "https://packagecloud.io/timescale/timescaledb/ubuntu/ ${VERSION_CODENAME} main"
+add_repo redis      https://packages.redis.io/gpg                                "https://packages.redis.io/deb ${VERSION_CODENAME} main"
+add_repo nodesource https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key    "https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main"
 
 apt-get update -qq
 
@@ -95,7 +77,6 @@ fi
 # --- PostgreSQL ---------------------------------------------------------------
 log "Tuning PostgreSQL for this host"
 PGCONF="/etc/postgresql/${PG_MAJOR}/main/conf.d/00-platform.conf"
-install -d -m 0755 "$(dirname "$PGCONF")"
 TOTAL_MB=$(awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo)
 cat > "$PGCONF" <<EOF
 # managed by deploy/bootstrap.sh — do not edit by hand
@@ -106,18 +87,16 @@ listen_addresses = 'localhost'
 EOF
 # ponytail: shared_buffers + effective_cache_size are ~90% of the tuning win.
 # Add work_mem/max_connections only if you actually see contention.
-systemctl enable --now postgresql
+systemctl enable postgresql
 systemctl restart postgresql
 
 log "Redis"
 systemctl enable --now redis-server
 
 # --- Firewall -----------------------------------------------------------------
-# Oracle's Ubuntu images ship iptables rules that DROP everything except 22.
-# firewalld/ufw alone is not enough here.
-# Insert at position 1: the rules we are getting past are REJECT/DROP further
-# down, and their position varies by image. Assuming an index would silently
-# leave the port closed.
+# Oracle's Ubuntu images DROP everything except 22; ufw/firewalld alone is not
+# enough. Insert at position 1 — the REJECT rules sit at an image-dependent
+# index, and assuming one silently leaves the port closed.
 log "Opening 80/443 in iptables"
 for p in 80 443; do
   iptables -C INPUT -p tcp --dport "$p" -j ACCEPT 2>/dev/null \
@@ -136,8 +115,6 @@ install -d -m 0755 -o "$APP_USER" -g "$APP_USER" /srv
 # --- Caddy multi-project layout ----------------------------------------------
 log "Caddy layout for many projects"
 install -d -m 0755 /etc/caddy/sites
-# Caddy drops to the `caddy` user, so a root-owned log dir fails the reload.
-install -d -m 0755 -o caddy -g caddy /var/log/caddy
 if ! grep -q 'import sites' /etc/caddy/Caddyfile 2>/dev/null; then
   cat > /etc/caddy/Caddyfile <<'EOF'
 # One file per project in /etc/caddy/sites/. Adding a project = drop in a file

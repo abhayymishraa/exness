@@ -8,16 +8,12 @@ export const USERS: Record<
   }
 > = {};
 
-// Refuse to boot in production without a real secret rather than silently
-// signing every JWT with a value that is public in git history.
-export const SECRET = (() => {
-  const s = process.env.JWT_SECRET;
-  if (s) return s;
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("JWT_SECRET is required when NODE_ENV=production");
-  }
-  return "dev-only-insecure-secret";
-})();
+// Refuse to boot in production rather than silently signing every JWT with a
+// value that is public in git history.
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is required when NODE_ENV=production");
+}
+export const SECRET = process.env.JWT_SECRET ?? "dev-only-insecure-secret";
 
 export const ORDERS: Record<
   string,

@@ -12,13 +12,14 @@ USER_="${SSH_USER:-ubuntu}"
 PROJECT=exness
 SERVICES=(http_server ws price_poller)
 
-SSH=(ssh -i "$KEY" -o StrictHostKeyChecking=accept-new "${USER_}@${HOST}")
+SSH_OPTS=(-i "$KEY" -o StrictHostKeyChecking=accept-new)
+SSH=(ssh "${SSH_OPTS[@]}" "${USER_}@${HOST}")
 
 echo "==> syncing source"
 for s in "${SERVICES[@]}"; do
   rsync -az --delete \
-    --exclude node_modules --exclude .env --exclude 'dist' \
-    -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new" \
+    --exclude node_modules --exclude .env \
+    -e "ssh ${SSH_OPTS[*]}" \
     "./${s}/" "${USER_}@${HOST}:/srv/${PROJECT}/${s}/"
 done
 
