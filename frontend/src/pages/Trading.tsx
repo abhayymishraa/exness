@@ -7,6 +7,7 @@ import AskBids from "../components/AskBidsTable";
 import { findUserAmount } from "../api/trade";
 import OrdersPanel from "../components/OrdersPanel";
 import BuySell from "../components/BuySell";
+import { PiUserCircle } from "react-icons/pi";
 import { toDisplayPrice, toDisplayPriceUSD } from "../utils/utils";
 
 const PAIRS: { symbol: SYMBOL; label: string }[] = [
@@ -107,12 +108,10 @@ export default function Trading() {
         </div>
 
         {/* Balance was only visible inside the trade ticket, so it vanished the
-            moment you looked at positions or the chart. */}
-        <Link
-          to="/account"
-          className="group flex items-baseline gap-2 border border-line px-3 py-1 transition-colors hover:border-accent"
-          title="Account"
-        >
+            moment you looked at positions or the chart. It reads as a figure,
+            not a control: a clickable number gives no affordance, so the way to
+            the account lives in its own labelled button beside it. */}
+        <div className="flex items-baseline gap-2 border border-line px-3 py-1">
           <span className="label">Balance</span>
           {balance === null ? (
             <span className="inline-block h-4 w-16 animate-pulse bg-raised align-middle" />
@@ -125,6 +124,14 @@ export default function Trading() {
               })}
             </span>
           )}
+        </div>
+
+        <Link
+          to="/account"
+          className="btn btn-ghost gap-1.5 px-3 py-1.5 text-[13px]"
+        >
+          <PiUserCircle size={15} aria-hidden />
+          My profile
         </Link>
 
         <button
