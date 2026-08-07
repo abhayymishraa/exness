@@ -7,6 +7,7 @@ import Cta from "../components/Cta";
 import { NumberTicker } from "../components/magicui/number-ticker";
 import { FlickeringGrid } from "../components/magicui/flickering-grid";
 import { AnimatedBeam } from "../components/magicui/animated-beam";
+import { Lens } from "../components/magicui/lens";
 import { Signalingmanager } from "../utils/subscription_manager";
 import { toDisplayPrice } from "../utils/utils";
 import type { Trade } from "../components/AskBidsTable";
@@ -245,18 +246,36 @@ export default function ExnessLanding() {
             <div className="mt-10 grid gap-px bg-line lg:grid-cols-12">
               <Reveal className="bg-surface p-5 lg:col-span-7">
                 {/* Outer tray, inner core: the shot sits in a machined recess
-                    rather than flat on the surface. Radii are concentric. */}
+                    rather than flat on the surface. Radii are concentric.
+                    The lens is functional, not ornamental: the terminal is a
+                    dense instrument and at this size its order book, ticket and
+                    candles are unreadable. Hovering magnifies so a visitor can
+                    actually inspect the product before signing up. Disabled
+                    under reduced motion, where the tracking would be the whole
+                    effect. */}
                 <div className="rounded-[6px] bg-sunken p-1.5 ring-1 ring-line">
-                  <img
-                    src="/img/terminal.webp"
-                    alt="The Exness terminal: order book, live candles and an open BTC long with its liquidation price"
-                    loading="lazy"
-                    className="w-full rounded-[3px] shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]"
-                  />
+                  {reduce ? (
+                    <img
+                      src="/img/terminal.webp"
+                      alt="The Exness terminal: order book, live candles and an open BTC long with its liquidation price"
+                      loading="lazy"
+                      className="w-full rounded-[3px]"
+                    />
+                  ) : (
+                    <Lens zoomFactor={1.9} lensSize={190} lensColor="#158bf9">
+                      <img
+                        src="/img/terminal.webp"
+                        alt="The Exness terminal: order book, live candles and an open BTC long with its liquidation price"
+                        loading="lazy"
+                        className="w-full rounded-[3px] shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]"
+                      />
+                    </Lens>
+                  )}
                 </div>
                 <p className="mt-4 text-[13px] leading-relaxed text-ink-dim">
                   The terminal, as it runs: live book, exchange-style candles,
                   one-click positions.
+                  <span className="text-ink-faint"> Hover to magnify.</span>
                 </p>
               </Reveal>
 

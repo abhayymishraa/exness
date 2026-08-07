@@ -75,6 +75,34 @@ No div-built fake UI, no hand-rolled decorative SVG, no stock.
 Decorative art is masked with a radial gradient so it dissolves into the surface
 rather than hard-cutting at a container edge.
 
+## Vendored components
+
+Pulled from the Magic UI registry (MIT) into `src/components/magicui/`, adapted
+for Vite. We own these copies, so local edits are expected and fine.
+
+| Component | Where | Why it earns its place |
+|---|---|---|
+| `NumberTicker` | landing stat row | figures count up once on entry |
+| `FlickeringGrid` | behind the live ticker | the visual of ticks arriving |
+| `AnimatedBeam` | pipeline section | draws the section's actual subject: a price moving feed to engine to desk |
+| `BorderBeam` | live market panel | gated on real stream state; it reports, it does not ornament |
+| `Lens` | product screenshot | functional. The terminal is dense and unreadable at that size; hover magnifies so a visitor can inspect it |
+
+**None of these ship a reduced-motion branch.** Every one is gated at the call
+site, and under `prefers-reduced-motion` they unmount rather than slow down.
+Verify that whenever you add another.
+
+Two local edits worth knowing: `NumberTicker`'s registry spring (damping 60 /
+stiffness 100) took ~9s to settle, showing a wrong number for most of it, so it
+is retuned; `Lens` hardcodes `rounded-xl`, which fights the 4px radius, so its
+container is matched to this project.
+
+**Rejected, and why** — the filter is "what does this communicate", not "is it
+available": `magic-card` needs `next-themes`, a Next.js package, for an app with
+one locked theme, and its cursor glow breaks the no-glow rule. `scroll-progress`
+is not earned on a four-section page. `Marquee`, `Particles`, `Ripple`,
+`Meteors` and the rest all work here and all make the page worse.
+
 ## Icons
 
 `react-icons` Phosphor set (`react-icons/pi`), already a dependency. One family.
