@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useReducedMotion } from "motion/react";
 import LiveTicker from "../components/LiveTicker";
@@ -6,6 +6,7 @@ import Reveal from "../components/Reveal";
 import Cta from "../components/Cta";
 import { NumberTicker } from "../components/magicui/number-ticker";
 import { FlickeringGrid } from "../components/magicui/flickering-grid";
+import { AnimatedBeam } from "../components/magicui/animated-beam";
 import { Signalingmanager } from "../utils/subscription_manager";
 import { toDisplayPrice } from "../utils/utils";
 import type { Trade } from "../components/AskBidsTable";
@@ -81,6 +82,11 @@ const JOURNEY = [
 
 export default function ExnessLanding() {
   const reduce = useReducedMotion();
+  const pipelineRef = useRef<HTMLDivElement>(null);
+  const stage0 = useRef<HTMLImageElement>(null);
+  const stage1 = useRef<HTMLImageElement>(null);
+  const stage2 = useRef<HTMLImageElement>(null);
+  const stageRefs = [stage0, stage1, stage2];
 
   return (
     <div className="min-h-dvh bg-base text-ink">
@@ -176,10 +182,11 @@ export default function ExnessLanding() {
                 From raw feed to filled order.
               </h2>
             </Reveal>
-            <div className="mt-10 grid gap-10 lg:grid-cols-12 lg:gap-6">
+            <div ref={pipelineRef} className="relative mt-10 grid gap-10 lg:grid-cols-12 lg:gap-6">
               {JOURNEY.map((step, i) => (
                 <Reveal key={step.title} delay={i * 0.09} className={step.span}>
                   <img
+                    ref={stageRefs[i]}
                     src={step.img}
                     alt={step.alt}
                     loading="lazy"
@@ -191,6 +198,40 @@ export default function ExnessLanding() {
                   </p>
                 </Reveal>
               ))}
+
+              {/* The beams ARE the section's message: a trade price travelling
+                  feed -> engine room -> desk. Drawn only at lg, where the grid
+                  runs horizontally; stacked on a phone they would be long
+                  meaningless verticals. */}
+              {!reduce && (
+                <div aria-hidden className="hidden lg:block">
+                  <AnimatedBeam
+                    containerRef={pipelineRef}
+                    fromRef={stageRefs[0]}
+                    toRef={stageRefs[1]}
+                    curvature={-38}
+                    pathColor="#2b3f49"
+                    pathWidth={1.5}
+                    pathOpacity={1}
+                    gradientStartColor="#158bf9"
+                    gradientStopColor="#46a5ff"
+                    duration={5}
+                  />
+                  <AnimatedBeam
+                    containerRef={pipelineRef}
+                    fromRef={stageRefs[1]}
+                    toRef={stageRefs[2]}
+                    curvature={-30}
+                    pathColor="#2b3f49"
+                    pathWidth={1.5}
+                    pathOpacity={1}
+                    gradientStartColor="#158bf9"
+                    gradientStopColor="#46a5ff"
+                    duration={5}
+                    delay={1.1}
+                  />
+                </div>
+              )}
             </div>
           </section>
 

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "motion/react";
+import { BorderBeam } from "./magicui/border-beam";
 import { Signalingmanager } from "../utils/subscription_manager";
 import { toDisplayPrice } from "../utils/utils";
 import type { SYMBOL } from "../utils/constants";
@@ -17,6 +19,7 @@ type Row = { bid: number; ask: number; dir: "up" | "down" | null };
 export default function LiveTicker() {
   const [rows, setRows] = useState<Record<string, Row>>({});
   const prev = useRef<Record<string, number>>({});
+  const reduce = useReducedMotion();
   const live = Object.keys(rows).length > 0;
 
   useEffect(() => {
@@ -56,7 +59,19 @@ export default function LiveTicker() {
         </span>
       </div>
 
-      <ul className="grid grid-cols-3 divide-x divide-line border-y border-line">
+      <ul className="relative grid grid-cols-3 divide-x divide-line border-y border-line">
+        {/* Tied to real state: the beam traces the panel only while ticks are
+            actually arriving, so it reads as a signal rather than decoration.
+            The registry component has no reduced-motion branch of its own. */}
+        {live && !reduce && (
+          <BorderBeam
+            size={90}
+            duration={7}
+            colorFrom="#158bf9"
+            colorTo="transparent"
+            borderWidth={1}
+          />
+        )}
         {SYMBOLS.map((symbol) => {
           const row = rows[symbol];
           return (
