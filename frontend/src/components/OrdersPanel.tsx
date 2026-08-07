@@ -408,8 +408,22 @@ export default function OrdersPanel() {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-12 text-ink-faint">
-                No open positions
+              /* A composed empty state: say what belongs here and how it gets
+                 here. Bare "No open positions" wastes the panel. */
+              <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+                <div className="flex items-end gap-1" aria-hidden>
+                  <span className="h-3 w-1.5 bg-long/30" />
+                  <span className="h-5 w-1.5 bg-short/30" />
+                  <span className="h-4 w-1.5 bg-long/30" />
+                  <span className="h-7 w-1.5 bg-line" />
+                </div>
+                <p className="mt-4 text-[13px] font-medium text-ink-dim">
+                  No open positions
+                </p>
+                <p className="mt-1.5 max-w-[34ch] text-[12px] leading-relaxed text-ink-faint">
+                  Set a margin and leverage in the ticket, then long or short.
+                  Your liquidation price is shown before you confirm.
+                </p>
               </div>
             )}
           </>
@@ -470,7 +484,12 @@ export default function OrdersPanel() {
             </table>
           </div>
         ) : (
-          <div className="text-center py-12 text-ink-faint">No order history</div>
+          <div className="px-4 py-12 text-center">
+            <p className="text-[13px] font-medium text-ink-dim">No closed positions</p>
+            <p className="mx-auto mt-1.5 max-w-[34ch] text-[12px] leading-relaxed text-ink-faint">
+              Closed positions land here with their entry, exit and realised P&L.
+            </p>
+          </div>
         )}
       </div>
     </div>

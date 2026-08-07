@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useReducedMotion } from "motion/react";
 import LiveTicker from "../components/LiveTicker";
 import Reveal from "../components/Reveal";
+import Cta from "../components/Cta";
 import { NumberTicker } from "../components/magicui/number-ticker";
 import { FlickeringGrid } from "../components/magicui/flickering-grid";
 import { Signalingmanager } from "../utils/subscription_manager";
@@ -124,7 +125,7 @@ export default function ExnessLanding() {
         </header>
 
         <main id="main">
-          <section className="grid gap-12 py-14 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
+          <section className="grid gap-12 py-16 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-20">
             <div>
               <h1
                 className="rise text-[clamp(2.5rem,5.5vw,4rem)] font-semibold"
@@ -143,12 +144,10 @@ export default function ExnessLanding() {
                 className="rise mt-9 flex flex-wrap items-center gap-3"
                 style={{ animationDelay: "200ms" }}
               >
-                <Link to="/signup" className="btn btn-primary px-6 py-3">
-                  Open account
-                </Link>
-                <Link to="/trading" className="btn btn-ghost px-6 py-3">
+                <Cta to="/signup">Open account</Cta>
+                <Cta to="/trading" variant="ghost">
                   Try the terminal
-                </Link>
+                </Cta>
               </div>
             </div>
 
@@ -171,7 +170,7 @@ export default function ExnessLanding() {
             </div>
           </section>
 
-          <section className="border-t border-line py-16 sm:py-20">
+          <section className="border-t border-line py-20 sm:py-24">
             <Reveal>
               <h2 className="max-w-[24ch] text-[clamp(1.6rem,3.2vw,2.4rem)] font-semibold">
                 From raw feed to filled order.
@@ -195,7 +194,7 @@ export default function ExnessLanding() {
             </div>
           </section>
 
-          <section className="border-t border-line py-16 sm:py-20">
+          <section className="border-t border-line py-20 sm:py-24">
             <Reveal>
               <h2 className="max-w-[26ch] text-[clamp(1.6rem,3.2vw,2.4rem)] font-semibold">
                 Real mechanics, demo stakes.
@@ -204,12 +203,16 @@ export default function ExnessLanding() {
 
             <div className="mt-10 grid gap-px bg-line lg:grid-cols-12">
               <Reveal className="bg-surface p-5 lg:col-span-7">
-                <img
-                  src="/img/terminal.webp"
-                  alt="The Exness terminal: order book, live candles and an open BTC long with its liquidation price"
-                  loading="lazy"
-                  className="w-full rounded-[4px] border border-line"
-                />
+                {/* Outer tray, inner core: the shot sits in a machined recess
+                    rather than flat on the surface. Radii are concentric. */}
+                <div className="rounded-[6px] bg-sunken p-1.5 ring-1 ring-line">
+                  <img
+                    src="/img/terminal.webp"
+                    alt="The Exness terminal: order book, live candles and an open BTC long with its liquidation price"
+                    loading="lazy"
+                    className="w-full rounded-[3px] shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]"
+                  />
+                </div>
                 <p className="mt-4 text-[13px] leading-relaxed text-ink-dim">
                   The terminal, as it runs: live book, exchange-style candles,
                   one-click positions.
@@ -226,7 +229,7 @@ export default function ExnessLanding() {
                     alt=""
                     aria-hidden
                     loading="lazy"
-                    className="pointer-events-none absolute -right-8 -top-2 w-44 opacity-45"
+                    className="[mask-image:radial-gradient(ellipse_70%_70%_at_60%_40%,#000_25%,transparent_72%)] pointer-events-none absolute -right-6 -top-3 w-44 opacity-40"
                   />
                   <h3 className="text-[15px] font-semibold">
                     Liquidation, before you commit.
@@ -275,7 +278,7 @@ export default function ExnessLanding() {
                     alt=""
                     aria-hidden
                     loading="lazy"
-                    className="pointer-events-none absolute -bottom-6 -right-10 w-52 opacity-40"
+                    className="[mask-image:radial-gradient(ellipse_70%_70%_at_60%_40%,#000_25%,transparent_72%)] pointer-events-none absolute -bottom-5 -right-8 w-52 opacity-40"
                   />
                   <h3 className="relative text-[15px] font-semibold">
                     Candles the way venues draw them.
@@ -289,7 +292,7 @@ export default function ExnessLanding() {
             </div>
           </section>
 
-          <section className="grid items-center gap-10 border-t border-line py-16 sm:py-20 lg:grid-cols-[1.1fr_0.9fr]">
+          <section className="grid items-center gap-12 border-t border-line py-20 sm:py-24 lg:grid-cols-[1.1fr_0.9fr]">
             <Reveal>
               <h2 className="max-w-[22ch] text-[clamp(1.6rem,3.2vw,2.4rem)] font-semibold">
                 Start with a $5,000 demo balance.
@@ -298,10 +301,8 @@ export default function ExnessLanding() {
                 No card, no deposit. Positions mark against live prices, and no
                 real funds ever move.
               </p>
-              <div className="mt-8">
-                <Link to="/signup" className="btn btn-primary px-6 py-3">
-                  Open account
-                </Link>
+              <div className="mt-9">
+                <Cta to="/signup">Open account</Cta>
               </div>
             </Reveal>
             <Reveal delay={0.1}>
